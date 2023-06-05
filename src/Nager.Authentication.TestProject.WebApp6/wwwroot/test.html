@@ -1,0 +1,78 @@
+﻿<html>
+<head>
+    <title>Test Authentication App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="mainmenu">
+        <a href="/">Home</a>
+        <a href="/test.html">Test</a>
+        <a href="/management.html">User Management</a>
+        <a href="/swagger">Swagger</a>
+    </div>
+
+    <div v-cloak id="app" style="padding-left:20px; padding-right:20px;">
+
+        <button @click="getTime">Time</button>
+
+        <hr />
+
+        <div v-if="responseStatusCode" style="margin-bottom:10px;">
+            <div style="background-color:#9cc4d7; padding: 10px; line-break: anywhere;">
+                StatusCode: {{ responseStatusCode }}
+            </div>
+        </div>
+
+        <div v-if="responseData" style="margin-top:10px;">
+            <div style="background-color:#dddddd; padding:10px; line-break:anywhere;">
+                {{ responseData }}
+            </div>
+        </div>
+
+        <div v-if="responseError" style="margin-top:10px;">
+            <div style="background-color:#f75050; padding:10px; line-break:anywhere;">
+                <pre>{{ responseError }}</pre>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    responseStatusCode: undefined,
+                    responseData: undefined,
+                    responseError: undefined
+                }
+            },
+            computed: {
+                token() {
+                    return localStorage.getItem("token");
+                }
+            },
+            methods: {
+                async getTime() {
+                    this.responseStatusCode = undefined
+                    this.responseData = undefined
+                    this.responseError = undefined
+
+                    const response = await fetch('/api/v1/Time', {
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": "application/json"
+                        }
+                    })
+
+                    this.responseStatusCode = response.status
+
+                    this.responseData = await response.text()
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+﻿<html>
+<head>
+    <title>Test Authentication App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="mainmenu">
+        <a href="/">Home</a>
+        <a href="/test.html">Test</a>
+        <a href="/management.html">User Management</a>
+        <a href="/swagger">Swagger</a>
+    </div>
+
+    <div v-cloak id="app" style="padding-left:20px; padding-right:20px;">
+
+        <div v-if="token">
+            <button @click="logout">Logout</button>
+
+            <div style="margin-top:30px; background-color:#d6fdd7;">
+                <div style="padding:10px;">
+                    <strong>Token Content</strong><br />
+                    <pre>{{ tokenInfo }}</pre>
+                </div>
+            </div>
+        </div>
+        <div v-else>
+            <div>
+                <strong>EmailAddress</strong><br />
+                <input type="text" v-model="emailAddress" />
+            </div>
+            <div style="margin-top:6px;">
+                <strong>Password</strong><br />
+                <input type="password" v-model="password" />
+            </div>
+
+            <div style="margin-top:12px;">
+                <button @click="login">Login</button>
+            </div>
+        </div>
+
+        <hr />
+
+        <div v-if="responseStatusCode" style="margin-bottom:10px;">
+            <div style="background-color:#9cc4d7; padding: 10px; line-break: anywhere;">
+                StatusCode: {{ responseStatusCode }}
+            </div>
+        </div>
+
+        <div v-if="responseData" style="margin-top:10px;">
+            <div style="background-color:#dddddd; padding:10px; line-break:anywhere;">
+                <strong>Token</strong><br />
+                {{ responseData.token }}<br />
+                <br />
+                <strong>Expiration</strong><br />
+                {{ responseData.expiration }}
+            </div>
+        </div>
+
+        <div v-if="responseError" style="margin-top:10px;">
+            <div style="background-color:#f75050; padding:10px; line-break:anywhere;">
+                <pre>{{ responseError }}</pre>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+
+        const { createApp } = Vue
+        const tokenKey = 'token'
+
+        createApp({
+            data() {
+                return {
+                    emailAddress: '',
+                    password: '',
+                    responseData: undefined,
+                    responseError: undefined,
+                    responseStatusCode: undefined,
+                    token: undefined
+                }
+            },
+            created() {
+                this.token = localStorage.getItem(tokenKey)
+            },
+            computed: {
+                tokenInfo() {
+                    const parts = this.token.split(".")
+
+                    if (parts.length !== 3) {
+                        return
+                    }
+
+                    return JSON.parse(atob(parts[1]))
+                }
+            },
+            methods: {
+                logout() {
+                    localStorage.removeItem(tokenKey)
+                    this.token = undefined
+
+                    this.responseStatusCode = undefined
+                    this.responseData = undefined
+                    this.responseError = undefined
+                },
+                async login() {
+                    this.responseStatusCode = undefined
+                    this.responseData = undefined
+                    this.responseError = undefined
+
+                    const response = await fetch('/api/v1/Authentication', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ emailAddress: this.emailAddress, password: this.password })
+                    })
+
+                    this.responseStatusCode = response.status
+
+                    if (response.status === 200) {
+                        this.responseData = await response.json()
+                        const token = this.responseData.token
+
+                        localStorage.setItem(tokenKey, token)
+                        this.token = token
+
+                    } else if (response.status === 400) {
+                        this.responseError = await response.json()
+                    }
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

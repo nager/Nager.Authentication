@@ -1,0 +1,49 @@
+﻿* {
+    font-family: Verdana;
+    font-size: 14px;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+body {
+    margin: 0px;
+    padding: 0px;
+}
+
+input, button {
+    padding: 6px;
+}
+
+strong {
+    color: #666666;
+}
+
+#mainmenu {
+    background-color: #dddddd;
+    margin-bottom: 20px;
+    padding-left: 10px;
+}
+
+#mainmenu a {
+    color: #333333;
+    padding: 20px;
+    display: inline-block;
+    background-color: #d3d3d3;
+    border-left: 1px solid #d3d3d3;
+    border-right: 1px solid #d3d3d3;
+}
+
+#mainmenu a:hover {
+    background-color: #eeeeee;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #bbbbbb;
+    padding: 10px;
+}
