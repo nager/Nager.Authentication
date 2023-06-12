@@ -8,7 +8,7 @@ namespace Nager.Authentication.Abstraction.Services
     {
         Task<bool> ChangePasswordAsync(
             string emailAddress,
-            UserChangePasswordRequest userChangePasswordRequest,
+            UserUpdatePasswordRequest userChangePasswordRequest,
             CancellationToken cancellationToken = default);
     }
 }

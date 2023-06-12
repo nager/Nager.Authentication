@@ -29,12 +29,18 @@ namespace Nager.Authentication.Abstraction.Services
             return await this._userRepository.GetAsync(id, cancellationToken);
         }
 
-        public async Task<bool> ChangePasswordAsync(
+        public async Task<bool> ResetPasswordAsync(
             string id,
-            UserChangePasswordRequest userChangePasswordRequest,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.ChangePasswordAsync(id, userChangePasswordRequest, cancellationToken);
+            var userChangePasswordRequest = new UserUpdatePasswordRequest
+            {
+                Password = "changeme"
+            };
+
+            //TODO: return new password
+
+            return await this._userRepository.UpdatePasswordAsync(id, userChangePasswordRequest, cancellationToken);
         }
 
         public async Task<bool> CreateAsync(
@@ -51,10 +57,10 @@ namespace Nager.Authentication.Abstraction.Services
 
         public async Task<bool> UpdateAsync(
             string id,
-            UserUpdateRequest updateUserRequest,
+            UserUpdateNameRequest updateUserNameRequest,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.UpdateAsync(id, updateUserRequest, cancellationToken);
+            return await this._userRepository.UpdateNameAsync(id, updateUserNameRequest, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(

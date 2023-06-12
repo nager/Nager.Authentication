@@ -71,10 +71,10 @@ namespace Nager.Authentication.Abstraction.Controllers
         {
             if (await this._userManagementService.CreateAsync(createRequest, cancellationToken))
             {
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status204NoContent);
             }
 
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         [Route("{userid}")]
         public async Task<ActionResult> EditUserAsync(
             [FromRoute] string userId,
-            [FromBody] UserUpdateRequest updateRequest,
+            [FromBody] UserUpdateNameRequest updateRequest,
             CancellationToken cancellationToken = default)
         {
             if (await this._userManagementService.UpdateAsync(userId, updateRequest, cancellationToken))
@@ -94,7 +94,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status200OK);
             }
 
-            return StatusCode(StatusCodes.Status200OK);
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         {
             if (await this._userManagementService.DeleteAsync(userId, cancellationToken))
             {
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status204NoContent);
             }
 
             return StatusCode(StatusCodes.Status500InternalServerError);

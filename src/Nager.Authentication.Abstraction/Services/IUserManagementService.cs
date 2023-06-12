@@ -21,7 +21,7 @@ namespace Nager.Authentication.Abstraction.Services
 
         Task<bool> UpdateAsync(
             string id,
-            UserUpdateRequest updateUserRequest,
+            UserUpdateNameRequest updateUserRequest,
             CancellationToken cancellationToken = default);
 
         Task<bool> DeleteAsync(

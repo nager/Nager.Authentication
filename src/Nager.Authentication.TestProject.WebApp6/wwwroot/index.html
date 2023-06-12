@@ -1,6 +1,7 @@
 ﻿<html>
 <head>
     <title>Test Authentication App</title>
+    <meta name=viewport content="initial-scale=1,maximum-scale=5,minimum-scale=1,width=device-width">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,7 +12,7 @@
         <a href="/swagger">Swagger</a>
     </div>
 
-    <div v-cloak id="app" style="padding-left:20px; padding-right:20px;">
+    <div v-cloak id="app" style="padding-left:10px; padding-right:10px;">
 
         <div v-if="token">
             <button @click="logout">Logout</button>
@@ -22,6 +23,17 @@
                     <pre>{{ tokenInfo }}</pre>
                 </div>
             </div>
+
+            <form action="javascript:void(0);" onSubmit="changePassword()">
+                <fieldset>
+                    <legend>Change password</legend>
+
+                    <label>Password</label>
+                    <input type="password" v-model="password" /><br />
+                    <button @click="changePassword()">Change</button>
+                </fieldset>
+            </form>
+
         </div>
         <div v-else>
             <div>
@@ -34,7 +46,7 @@
             </div>
 
             <div style="margin-top:12px;">
-                <button @click="login">Login</button>
+                <button @click="login()">Login</button>
             </div>
         </div>
 
@@ -96,18 +108,19 @@
                 }
             },
             methods: {
-                logout() {
-                    localStorage.removeItem(tokenKey)
-                    this.token = undefined
-
+                clearLastRequest() {
                     this.responseStatusCode = undefined
                     this.responseData = undefined
                     this.responseError = undefined
                 },
+                logout() {
+                    localStorage.removeItem(tokenKey)
+                    this.token = undefined
+
+                    this.clearLastRequest()
+                },
                 async login() {
-                    this.responseStatusCode = undefined
-                    this.responseData = undefined
-                    this.responseError = undefined
+                    this.clearLastRequest()
 
                     const response = await fetch('/api/v1/Authentication', {
                         method: "POST",
@@ -127,6 +140,20 @@
                     } else if (response.status === 400) {
                         this.responseError = await response.json()
                     }
+                },
+                async changePassword() {
+                    const response = await fetch('/api/v1/UserAccount/ChangePassword', {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            password: this.password
+                        })
+                    })
+
+                    this.responseStatusCode = response.status
                 }
             }
         }).mount('#app')

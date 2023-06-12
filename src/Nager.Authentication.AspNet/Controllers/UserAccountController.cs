@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
@@ -47,7 +46,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            var request = new UserChangePasswordRequest
+            var request = new UserUpdatePasswordRequest
             {
                 Password = changePasswordRequest.Password,
             };

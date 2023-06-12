@@ -28,6 +28,8 @@ namespace Nager.Authentication.InMemoryRepository
             {
                 var id = Guid.NewGuid().ToString();
 
+                userInfo.Id = id;
+
                 if (!this._userInfos.TryAdd(id, userInfo))
                 {
                     this._logger.LogError($"{nameof(InMemoryUserRepository)} - Cannot add user {userInfo.EmailAddress}");
@@ -48,8 +50,11 @@ namespace Nager.Authentication.InMemoryRepository
 
             var userInfo = new UserInfo
             {
+                Id = userInfoWithPassword.Id,
                 EmailAddress = userInfoWithPassword.EmailAddress,
-                Roles = userInfoWithPassword.Roles
+                Roles = userInfoWithPassword.Roles,
+                Firstname = userInfoWithPassword.Firstname,
+                Lastname = userInfoWithPassword.Lastname
             };
 
             return Task.FromResult(userInfo);
@@ -123,14 +128,6 @@ namespace Nager.Authentication.InMemoryRepository
             return Task.FromResult(exists);
         }
 
-        public Task<bool> ChangePasswordAsync(
-            string id,
-            UserChangePasswordRequest userChangePasswordRequest,
-            CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Task<bool> CreateAsync(
             UserCreateRequest createUserRequest,
             CancellationToken cancellationToken = default)
@@ -141,9 +138,9 @@ namespace Nager.Authentication.InMemoryRepository
             {
                 Id = id,
                 EmailAddress = createUserRequest.EmailAddress,
+                Password = createUserRequest.Password,
                 Firstname = createUserRequest.Firstname,
-                Lastname = createUserRequest.Lastname,
-                Password = createUserRequest.Password
+                Lastname = createUserRequest.Lastname
             };
 
             if (this._userInfos.TryAdd(id, userInfoWithPassword))
@@ -154,13 +151,31 @@ namespace Nager.Authentication.InMemoryRepository
             return Task.FromResult(false);
         }
 
-        public Task<bool> UpdateAsync(
+        public Task<bool> UpdateNameAsync(
             string id,
-            UserUpdateRequest updateUserRequest,
+            UserUpdateNameRequest userUpdateNameRequest,
             CancellationToken cancellationToken = default)
         {
             if (this._userInfos.TryGetValue(id, out var userInfo))
             {
+                userInfo.Firstname = userUpdateNameRequest.Firstname;
+                userInfo.Lastname = userUpdateNameRequest.Lastname;
+
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> UpdatePasswordAsync(
+            string id,
+            UserUpdatePasswordRequest userUpdatePasswordRequest,
+            CancellationToken cancellationToken = default)
+        {
+            if (this._userInfos.TryGetValue(id, out var userInfo))
+            {
+                userInfo.Password = userUpdatePasswordRequest.Password;
+
                 return Task.FromResult(true);
             }
 

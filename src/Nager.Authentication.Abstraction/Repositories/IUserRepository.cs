@@ -27,17 +27,17 @@ namespace Nager.Authentication.Abstraction.Validators
             CancellationToken cancellationToken = default);
 
         Task<bool> CreateAsync(
-            UserCreateRequest createUserRequest,
+            UserCreateRequest userCreateRequest,
             CancellationToken cancellationToken = default);
 
-        Task<bool> UpdateAsync(
+        Task<bool> UpdateNameAsync(
             string id,
-            UserUpdateRequest updateUserRequest,
+            UserUpdateNameRequest userUpdateNameRequest,
             CancellationToken cancellationToken = default);
 
-        Task<bool> ChangePasswordAsync(
+        Task<bool> UpdatePasswordAsync(
             string id,
-            UserChangePasswordRequest userChangePasswordRequest,
+            UserUpdatePasswordRequest userUpdatePasswordRequest,
             CancellationToken cancellationToken = default);
 
         Task<bool> DeleteAsync(

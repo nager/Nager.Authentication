@@ -22,14 +22,21 @@ namespace Nager.Authentication.Abstraction.Services
             this._userRepository = userRepository;
         }
 
-        public Task<bool> ChangePasswordAsync(
+        public async Task<bool> ChangePasswordAsync(
             string emailAddress,
-            UserChangePasswordRequest userChangePasswordRequest,
+            UserUpdatePasswordRequest userChangePasswordRequest,
             CancellationToken cancellationToken = default)
         {
-            //this._userRepository.ChangePasswordAsync()
+            var userInfo = await this._userRepository.GetUserInfoAsync(emailAddress);
+            if (userInfo == null)
+            {
+                return false;
+            }
 
-            throw new System.NotImplementedException();
+            return await this._userRepository.UpdatePasswordAsync(userInfo.Id, new UserUpdatePasswordRequest
+            {
+                Password = userChangePasswordRequest.Password
+            });
         }
     }
 }

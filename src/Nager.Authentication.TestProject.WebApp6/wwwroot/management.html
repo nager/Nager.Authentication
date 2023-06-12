@@ -1,6 +1,7 @@
 ﻿<html>
 <head>
     <title>Test Authentication App</title>
+    <meta name=viewport content="initial-scale=1,maximum-scale=5,minimum-scale=1,width=device-width">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,25 +12,25 @@
         <a href="/swagger">Swagger</a>
     </div>
 
-    <div v-cloak id="app" style="padding-left:20px; padding-right:20px;">
+    <div v-cloak id="app" style="padding-left:10px; padding-right:10px;">
 
-        <button @click="queryUsers">query Users</button>
+        <button @click="queryUsers">Query Users</button>
 
         <hr />
 
         <div v-if="responseStatusCode" style="margin-bottom:10px;">
-            <div style="background-color:#9cc4d7; padding: 10px; line-break: anywhere;">
+            <div style="background-color:#9cc4d7; padding:10px; line-break:anywhere;">
                 StatusCode: {{ responseStatusCode }}
             </div>
         </div>
 
-        <div v-if="responseError" style="margin-top:10px;">
+        <div v-if="responseError" style="margin-bottom:10px;">
             <div style="background-color:#f75050; padding:10px; line-break:anywhere;">
                 <pre>{{ responseError }}</pre>
             </div>
         </div>
 
-        <div v-if="responseData" style="margin-top:10px;">
+        <div v-if="responseData" style="margin-bottom:10px;">
             <div style="background-color:#dddddd; padding:10px; line-break:anywhere;">
                 <table>
                     <thead>
@@ -38,6 +39,7 @@
                             <th>EmailAddress</th>
                             <th>Firstname</th>
                             <th>Lastname</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -46,10 +48,29 @@
                             <td>{{ user.emailAddress }}</td>
                             <td>{{ user.firstname }}</td>
                             <td>{{ user.lastname }}</td>
+                            <td><button @click="deleteUser(user.id)">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div>
+            <form action="javascript:void(0);" onSubmit="createUser()">
+                <fieldset>
+                    <legend>Create new user</legend>
+
+                    <label>EmailAddress</label>
+                    <input type="text" v-model="emailAddress" /><br />
+                    <label>Password</label>
+                    <input type="password" v-model="password" /><br />
+                    <label>Firstname</label>
+                    <input type="text" v-model="firstname" /><br />
+                    <label>Lastname</label>
+                    <input type="text" v-model="lastname" /><br />
+                    <button @click="createUser()">Create</button>
+                </fieldset>
+            </form>
         </div>
     </div>
     
@@ -63,7 +84,11 @@
                 return {
                     responseData: undefined,
                     responseError: undefined,
-                    responseStatusCode: undefined
+                    responseStatusCode: undefined,
+                    emailAddress: undefined,
+                    password: undefined,
+                    firstname: undefined,
+                    lastname: undefined
                 }
             },
             computed: {
@@ -72,10 +97,54 @@
                 }
             },
             methods: {
-                async queryUsers() {
+                clearLastRequest() {
                     this.responseStatusCode = undefined
                     this.responseData = undefined
                     this.responseError = undefined
+                },
+                async deleteUser(userId) {
+                    this.clearLastRequest()
+
+                    const response = await fetch(`/api/v1/UserManagement/${userId}`, {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": "application/json"
+                        }
+                    })
+
+                    this.responseStatusCode = response.status
+
+                    if (response.status === 200) {
+                        await this.queryUsers()
+                    }
+                },
+                async createUser() {
+                    this.clearLastRequest()
+
+                    const response = await fetch('/api/v1/UserManagement/', {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            emailAddress: this.emailAddress,
+                            password: this.password,
+                            firstname: this.firstname,
+                            lastname: this.lastname
+                        })
+                    })
+
+                    this.responseStatusCode = response.status
+                    if (response.status === 200) {
+                        this.responseData = await response.json()
+                    } else if (response.status === 400) {
+                        this.responseError = await response.json()
+                    }
+                },
+                async queryUsers() {
+                    this.clearLastRequest()
 
                     const response = await fetch('/api/v1/UserManagement', {
                         headers: {

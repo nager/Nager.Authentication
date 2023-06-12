@@ -1,6 +1,6 @@
 ﻿namespace Nager.Authentication.Abstraction.Models
 {
-    public class UserChangePasswordRequest
+    public class UserUpdatePasswordRequest
     {
         public string Password { get; set; }
     }

@@ -1,6 +1,6 @@
 ﻿* {
     font-family: Verdana;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 [v-cloak] {
@@ -12,8 +12,13 @@ body {
     padding: 0px;
 }
 
-input, button {
-    padding: 6px;
+button {
+    padding: 5px 10px 5px 10px;
+}
+
+input {
+    padding: 5px;
+    margin-bottom: 10px;
 }
 
 strong {
@@ -46,4 +51,15 @@ table {
 th, td {
     border: 1px solid #bbbbbb;
     padding: 10px;
+}
+
+label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+input {
+    
 }
