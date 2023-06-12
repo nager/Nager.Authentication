@@ -53,7 +53,7 @@ namespace Nager.Authentication.Abstraction.Controllers
 
             if (await this._userAccountService.ChangePasswordAsync(emailAddress, request, cancellationToken))
             {
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status204NoContent);
             }
 
             return StatusCode(StatusCodes.Status500InternalServerError);
