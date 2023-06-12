@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

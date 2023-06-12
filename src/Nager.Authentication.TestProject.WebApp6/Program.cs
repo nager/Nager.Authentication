@@ -62,6 +62,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(configuration =>
 {
+    #region Provide the extended endpoint description from the xml comments
+
+    //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    //configuration.IncludeXmlComments(xmlPath);
+
+    foreach (var filePath in Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly))
+    {
+        configuration.IncludeXmlComments(filePath);
+    }
+
+    #endregion
+
     configuration.SwaggerDoc("general", new OpenApiInfo
     {
         Title = "General Documentation",

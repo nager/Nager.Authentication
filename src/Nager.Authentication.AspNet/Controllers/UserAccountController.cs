@@ -34,8 +34,12 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="changePasswordRequest"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
+        /// <response code="204">Password changed</response>
+        /// <response code="500">Unexpected error</response>
         [HttpPost]
         [Route("ChangePassword")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> ChangePasswordAsync(
             [Required][FromBody] ChangePasswordRequestDto changePasswordRequest,
             CancellationToken cancellationToken = default)
