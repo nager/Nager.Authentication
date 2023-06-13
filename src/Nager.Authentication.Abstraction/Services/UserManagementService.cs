@@ -1,5 +1,6 @@
 ﻿using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +20,8 @@ namespace Nager.Authentication.Abstraction.Services
             int skip,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.QueryAsync(take, skip, cancellationToken);
+            var items = await this._userRepository.QueryAsync(take, skip, cancellationToken);
+            return items.OrderBy(user => user.EmailAddress).ToArray();
         }
 
         public async Task<UserInfo?> GetAsync(
