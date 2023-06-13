@@ -52,7 +52,7 @@
             },
             computed: {
                 token() {
-                    return localStorage.getItem("token");
+                    return localStorage.getItem('token');
                 }
             },
             methods: {
@@ -64,7 +64,7 @@
                     const response = await fetch('/api/v1/Time', {
                         headers: {
                             "Authorization": `Bearer ${this.token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": 'application/json'
                         }
                     })
 

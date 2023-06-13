@@ -103,7 +103,10 @@ async function login () {
             </q-card>
           </div>
           <div class="q-mt-sm text-white text-right">
-            github.com/nager
+            <a
+              class="text-white"
+              href="https://github.com/nager/Nager.Authentication"
+            >Nager.Authentication</a>
           </div>
         </div>
       </q-page>

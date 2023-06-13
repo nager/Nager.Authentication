@@ -93,7 +93,7 @@
             },
             computed: {
                 token() {
-                    return localStorage.getItem("token")
+                    return localStorage.getItem('token')
                 }
             },
             methods: {
@@ -106,10 +106,10 @@
                     this.clearLastRequest()
 
                     const response = await fetch(`/api/v1/UserManagement/${userId}`, {
-                        method: "DELETE",
+                        method: 'DELETE',
                         headers: {
                             "Authorization": `Bearer ${this.token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": 'application/json'
                         }
                     })
 
@@ -123,10 +123,10 @@
                     this.clearLastRequest()
 
                     const response = await fetch('/api/v1/UserManagement/', {
-                        method: "POST",
+                        method: 'POST',
                         headers: {
                             "Authorization": `Bearer ${this.token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
                             emailAddress: this.emailAddress,
@@ -149,7 +149,7 @@
                     const response = await fetch('/api/v1/UserManagement', {
                         headers: {
                             "Authorization": `Bearer ${this.token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": 'application/json'
                         }
                     })
 

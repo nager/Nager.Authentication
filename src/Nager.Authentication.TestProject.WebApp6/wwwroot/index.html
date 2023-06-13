@@ -123,8 +123,8 @@
                     this.clearLastRequest()
 
                     const response = await fetch('/api/v1/Authentication', {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        method: 'POST',
+                        headers: { "Content-Type": 'application/json' },
                         body: JSON.stringify({ emailAddress: this.emailAddress, password: this.password })
                     })
 
@@ -146,7 +146,7 @@
                         method: "POST",
                         headers: {
                             "Authorization": `Bearer ${this.token}`,
-                            "Content-Type": "application/json"
+                            "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
                             password: this.password

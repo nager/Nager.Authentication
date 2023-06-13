@@ -10,6 +10,7 @@ import UserAddForm from './UserAddForm.vue'
 
 const $q = useQuasar()
 
+const loading = ref<boolean>()
 const users = ref<User[]>()
 const editUser = ref<User>()
 const showAddDialog = ref(false)
@@ -62,22 +63,28 @@ const token = computed(() => {
 })
 
 async function getUsers () {
-  const response = await fetch('/api/v1/UserManagement', {
-    headers: {
-      Authorization: `Bearer ${token.value}`,
-      'Content-Type': 'application/json'
-    }
-  })
+  try {
+    loading.value = true
 
-  if (response.status !== 200) {
-    $q.notify({
-      type: 'negative',
-      message: 'Request failure',
-      caption: response.statusText
+    const response = await fetch('/api/v1/UserManagement', {
+      headers: {
+        Authorization: `Bearer ${token.value}`,
+        'Content-Type': 'application/json'
+      }
     })
-  }
 
-  users.value = await response.json() as User[]
+    if (response.status !== 200) {
+      $q.notify({
+        type: 'negative',
+        message: 'Request failure',
+        caption: response.statusText
+      })
+    }
+
+    users.value = await response.json() as User[]
+  } finally {
+    loading.value = false
+  }
 }
 
 async function removeRow (row : User) {
@@ -136,6 +143,7 @@ onMounted(async () => {
     :rows="users"
     :columns="columns"
     row-key="name"
+    :loading="loading"
   >
     <template #body-cell-actions="props">
       <q-td :props="props">

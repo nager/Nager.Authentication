@@ -102,14 +102,14 @@ namespace Nager.Authentication.Abstraction.Services
             };
 
             var userInfo = await this._userRepository.ValidateAsync(authenticationCredentials.EmailAddress, authenticationCredentials.Password, cancellationToken);
-            if (userInfo != null)
+            if (userInfo == null)
             {
-                this.SetValidLogin(authenticationRequest.IpAddress);
-                return AuthenticationStatus.Valid;
+                this.SetInvalidLogin(authenticationRequest.IpAddress);
+                return AuthenticationStatus.Invalid;
             }
 
-            this.SetInvalidLogin(authenticationRequest.IpAddress);
-            return AuthenticationStatus.Invalid;
+            this.SetValidLogin(authenticationRequest.IpAddress);
+            return AuthenticationStatus.Valid;
         }
 
         public async Task<string[]> GetRolesAsync(
@@ -117,7 +117,12 @@ namespace Nager.Authentication.Abstraction.Services
             CancellationToken cancellationToken = default)
         {
             var userInfo = await this._userRepository.GetUserInfoAsync(emailAddress);
-            return userInfo.Roles;
+            if (userInfo == null)
+            {
+                return null;
+            }
+
+            return userInfo.Roles ?? Array.Empty<string>();
         }
     }
 }
