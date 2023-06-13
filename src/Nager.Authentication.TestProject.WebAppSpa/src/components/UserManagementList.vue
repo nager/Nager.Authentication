@@ -2,14 +2,18 @@
 import { computed, ref, onMounted } from 'vue'
 import { QTableProps, useQuasar, LocalStorage } from 'quasar'
 
+import { User } from 'src/models/User'
+
 import DefaultDialog from './DefaultDialog.vue'
-import EditUserForm from './EditUserForm.vue'
+import UserEditForm from './UserEditForm.vue'
+import UserAddForm from './UserAddForm.vue'
 
 const $q = useQuasar()
 
-const users = ref()
+const users = ref<User[]>()
+const editUser = ref<User>()
+const showAddDialog = ref(false)
 const showEditDialog = ref(false)
-const editUser = ref()
 
 const columns : QTableProps['columns'] = [
   {
@@ -73,10 +77,10 @@ async function getUsers () {
     })
   }
 
-  users.value = await response.json()
+  users.value = await response.json() as User[]
 }
 
-async function removeRow (row) {
+async function removeRow (row : User) {
   const response = await fetch(`/api/v1/UserManagement/${row.id}`, {
     method: 'DELETE',
     headers: {
@@ -96,9 +100,19 @@ async function removeRow (row) {
   await getUsers()
 }
 
-async function editRow (row) {
+async function editRow (row : User) {
   editUser.value = row
   showEditDialog.value = true
+}
+
+async function editDone () {
+  showEditDialog.value = false
+  await getUsers()
+}
+
+async function addDone () {
+  showAddDialog.value = false
+  await getUsers()
 }
 
 onMounted(async () => {
@@ -112,6 +126,7 @@ onMounted(async () => {
     class="q-mb-sm"
     outline
     label="Add User"
+    @click="showAddDialog = true"
   />
 
   <q-table
@@ -148,6 +163,18 @@ onMounted(async () => {
     title="Edit User"
     @hide="showEditDialog = false"
   >
-    <EditUserForm />
+    <UserEditForm
+      v-if="editUser"
+      :user="editUser"
+      @close="editDone()"
+    />
+  </DefaultDialog>
+
+  <DefaultDialog
+    :dialog-visible="showAddDialog"
+    title="Add User"
+    @hide="showAddDialog = false"
+  >
+    <UserAddForm @close="addDone()" />
   </DefaultDialog>
 </template>

@@ -71,7 +71,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         {
             if (await this._userManagementService.CreateAsync(createRequest, cancellationToken))
             {
-                return StatusCode(StatusCodes.Status204NoContent);
+                return StatusCode(StatusCodes.Status201Created);
             }
 
             return StatusCode(StatusCodes.Status500InternalServerError);
@@ -91,7 +91,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         {
             if (await this._userManagementService.UpdateAsync(userId, updateRequest, cancellationToken))
             {
-                return StatusCode(StatusCodes.Status200OK);
+                return StatusCode(StatusCodes.Status204NoContent);
             }
 
             return StatusCode(StatusCodes.Status500InternalServerError);
