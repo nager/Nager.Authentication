@@ -43,6 +43,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             AuthenticationRequestDto request)
         {
             var issuer = this._configuration["Authentication:Tokens:Issuer"];
+            var audience = this._configuration["Authentication:Tokens:Audience"];
             var signingKey = this._configuration["Authentication:Tokens:SigningKey"];
             //TODO: load from config
             var expiresAt = DateTime.UtcNow.AddDays(7);
@@ -81,7 +82,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             return new JwtSecurityToken(issuer,
-                issuer,
+                audience,
                 claims,
                 expires: expiresAt,
                 signingCredentials: credentials);

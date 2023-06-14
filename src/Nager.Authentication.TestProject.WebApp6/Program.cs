@@ -44,7 +44,10 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(configuration =>
 {
+    
+
     var issuer = builder.Configuration["Authentication:Tokens:Issuer"];
+    var audience = builder.Configuration["Authentication:Tokens:Audience"];
     var signingKey = builder.Configuration["Authentication:Tokens:SigningKey"];
 
     //configuration.RequireHttpsMetadata = false;
@@ -52,9 +55,11 @@ builder.Services.AddAuthentication(options =>
     configuration.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = issuer,
-        ValidAudience = issuer,
+        ValidAudience = audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
-        ValidateLifetime = true
+        ValidateLifetime = true,
+        ValidateAudience = true,
+        ValidateIssuer = true
     };
 });
 
