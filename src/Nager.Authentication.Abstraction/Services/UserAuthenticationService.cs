@@ -42,6 +42,11 @@ namespace Nager.Authentication.Abstraction.Services
                 authenticationInfo = new AuthenticationInfo();
             }
 
+            if (authenticationInfo == null)
+            {
+                throw new ArgumentNullException(nameof(authenticationInfo));
+            }
+
             authenticationInfo.InvalidCount++;
             authenticationInfo.LastInvalid = DateTime.Now;
 
@@ -54,6 +59,11 @@ namespace Nager.Authentication.Abstraction.Services
             if (!this._memoryCache.TryGetValue<AuthenticationInfo>(cacheKey, out var authenticationInfo))
             {
                 authenticationInfo = new AuthenticationInfo();
+            }
+
+            if (authenticationInfo == null)
+            {
+                throw new ArgumentNullException(nameof(authenticationInfo));
             }
 
             authenticationInfo.LastValid = DateTime.Now;
@@ -69,6 +79,11 @@ namespace Nager.Authentication.Abstraction.Services
             if (!this._memoryCache.TryGetValue<AuthenticationInfo>(cacheKey, out var authenticationInfo))
             {
                 return false;
+            }
+
+            if (authenticationInfo == null)
+            {
+                throw new ArgumentNullException(nameof(authenticationInfo));
             }
 
             if (authenticationInfo.InvalidCount < this._maxInvalidLoginsBeforeDelay)
@@ -112,17 +127,11 @@ namespace Nager.Authentication.Abstraction.Services
             return AuthenticationStatus.Valid;
         }
 
-        public async Task<string[]> GetRolesAsync(
+        public async Task<UserInfo> GetUserInfoAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
         {
-            var userInfo = await this._userRepository.GetUserInfoAsync(emailAddress);
-            if (userInfo == null)
-            {
-                return null;
-            }
-
-            return userInfo.Roles ?? Array.Empty<string>();
+            return await this._userRepository.GetUserInfoAsync(emailAddress);
         }
     }
 }

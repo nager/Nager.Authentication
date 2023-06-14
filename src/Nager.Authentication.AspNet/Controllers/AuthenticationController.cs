@@ -58,8 +58,8 @@ namespace Nager.Authentication.Abstraction.Controllers
                 throw new MissingConfigurationException($"{nameof(signingKey)} is missing");
             }
 
-            var roles = await this._userAuthenticationService.GetRolesAsync(request.EmailAddress);
-            if (roles == null)
+            var userInfo = await this._userAuthenticationService.GetUserInfoAsync(request.EmailAddress);
+            if (userInfo == null)
             {
                 throw new UnknownUserException();
             }
@@ -67,11 +67,22 @@ namespace Nager.Authentication.Abstraction.Controllers
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.UniqueName, request.EmailAddress),
+                new Claim(JwtRegisteredClaimNames.Email, request.EmailAddress)
             };
 
-            if (roles != null)
+            if (!string.IsNullOrEmpty(userInfo.Firstname))
             {
-                foreach (var role in roles)
+                claims.Add(new Claim(JwtRegisteredClaimNames.GivenName, userInfo.Firstname));
+            }
+
+            if (!string.IsNullOrEmpty(userInfo.Lastname))
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.FamilyName, userInfo.Lastname));
+            }
+
+            if (userInfo.Roles != null)
+            {
+                foreach (var role in userInfo.Roles)
                 {
                     //TODO: Check role with schema is a good chooise
                     claims.Add(new Claim(ClaimTypes.Role, role));
@@ -92,6 +103,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// Authenticate
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpPost]
