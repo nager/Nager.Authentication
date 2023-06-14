@@ -3,12 +3,22 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { LocalStorage } from 'quasar'
 
+import { parseToken } from '../helpers/tokenHelper'
+
 const Router = useRouter()
 
 const newPassword = ref<string>()
 
 const token = computed(() => {
-  return LocalStorage.getItem('token')
+  return LocalStorage.getItem<string>('token')
+})
+
+const tokenInfo = computed(() => {
+  if (token.value === null) {
+    return
+  }
+
+  return parseToken(token.value)
 })
 
 async function logout () {
@@ -42,8 +52,20 @@ async function changePassword () {
     flat
     label="Account"
   >
-    <div class="text-subtitle1 q-ma-md">
-      John Doe
+    <div
+      v-if="tokenInfo"
+      class="text-subtitle1 q-ma-md"
+    >
+      <div v-if="tokenInfo.firstname || tokenInfo.lastname">
+        {{ tokenInfo.firstname }} {{ tokenInfo.lastname }}
+      </div>
+      <div class="text-weight-medium">
+        {{ tokenInfo.emailAddress }}
+      </div>
+      <small style="line-height:14px; display:block;">
+        Token valid at<br>
+        {{ tokenInfo.validAt }}
+      </small>
     </div>
     <div class="row no-wrap q-pa-md">
       <div class="column">

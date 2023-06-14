@@ -21,8 +21,8 @@ async function getTime () {
   if (response.status !== 200) {
     $q.notify({
       type: 'negative',
-      message: 'Request failure',
-      caption: response.statusText
+      message: response.statusText,
+      caption: 'Cannot get time'
     })
   }
 

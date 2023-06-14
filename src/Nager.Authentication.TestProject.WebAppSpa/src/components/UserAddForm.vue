@@ -50,6 +50,7 @@ async function create () {
       autocomplete="email"
       label="Email Address"
       outlined
+      autofocus
     />
     <q-input
       v-model="form.password"
