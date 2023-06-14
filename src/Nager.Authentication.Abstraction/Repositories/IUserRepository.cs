@@ -40,6 +40,16 @@ namespace Nager.Authentication.Abstraction.Validators
             UserUpdatePasswordRequest userUpdatePasswordRequest,
             CancellationToken cancellationToken = default);
 
+        Task<bool> AddRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> RemoveRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default);
+
         Task<bool> DeleteAsync(
             string id,
             CancellationToken cancellationToken = default);

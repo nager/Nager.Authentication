@@ -6,6 +6,7 @@ import { User } from 'src/models/User'
 
 import DefaultDialog from './DefaultDialog.vue'
 import UserEditForm from './UserEditForm.vue'
+import UserRoleManagement from './UserRoleManagement.vue'
 import UserAddForm from './UserAddForm.vue'
 
 const $q = useQuasar()
@@ -175,6 +176,12 @@ onMounted(async () => {
       v-if="editUser"
       :user="editUser"
       @close="editDone()"
+    />
+
+    <UserRoleManagement
+      v-if="editUser"
+      class="q-mt-md"
+      :user="editUser"
     />
   </DefaultDialog>
 

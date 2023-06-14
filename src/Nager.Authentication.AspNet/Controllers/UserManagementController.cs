@@ -7,7 +7,6 @@ using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.AspNet.Dtos;
 using System.Data;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,7 +38,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// Get user by given id
+        /// Get user by given user id
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -126,7 +125,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// Edit user by given id
+        /// Edit user by given user id
         /// </summary>
         /// <returns></returns>
         [HttpPut]
@@ -154,7 +153,51 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// Delete user by given id
+        /// Add role to given user id
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Authorize(Roles = "administrator")]
+        [Route("{userid}/Role")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> AddRoleAsync(
+            [FromRoute] string userId,
+            [FromBody] UserRoleAddRequestDto userRoleAddRequest,
+            CancellationToken cancellationToken = default)
+        {
+            if (await this._userManagementService.AddRoleAsync(userId, userRoleAddRequest.RoleName, cancellationToken))
+            {
+                return StatusCode(StatusCodes.Status204NoContent);
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+
+        /// <summary>
+        /// Remove role to given user id
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        [Authorize(Roles = "administrator")]
+        [Route("{userid}/Role")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> RemoveRoleAsync(
+            [FromRoute] string userId,
+            [FromBody] UserRoleRemoveRequestDto userRoleRemoveRequest,
+            CancellationToken cancellationToken = default)
+        {
+            if (await this._userManagementService.RemoveRoleAsync(userId, userRoleRemoveRequest.RoleName, cancellationToken))
+            {
+                return StatusCode(StatusCodes.Status204NoContent);
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
+
+        /// <summary>
+        /// Delete user by given user id
         /// </summary>
         /// <returns></returns>
         [HttpDelete]

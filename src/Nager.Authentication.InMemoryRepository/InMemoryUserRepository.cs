@@ -182,6 +182,40 @@ namespace Nager.Authentication.InMemoryRepository
             return Task.FromResult(false);
         }
 
+        public Task<bool> AddRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default)
+        {
+            if (this._userInfos.TryGetValue(id, out var userInfo))
+            {
+                var roles = userInfo.Roles.ToList();
+                roles.Add(roleName);
+                userInfo.Roles = roles.ToArray();
+
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> RemoveRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default)
+        {
+            if (this._userInfos.TryGetValue(id, out var userInfo))
+            {
+                var roles = userInfo.Roles.ToList();
+                roles.Remove(roleName);
+                userInfo.Roles = roles.ToArray();
+
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
         public Task<bool> DeleteAsync(
             string id,
             CancellationToken cancellationToken = default)

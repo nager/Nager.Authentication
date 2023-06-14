@@ -1,6 +1,8 @@
 ﻿using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
+using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,18 +33,31 @@ namespace Nager.Authentication.Abstraction.Services
             return await this._userRepository.GetAsync(id, cancellationToken);
         }
 
-        public async Task<bool> ResetPasswordAsync(
+        public async Task<string> ResetPasswordAsync(
             string id,
             CancellationToken cancellationToken = default)
         {
             var userChangePasswordRequest = new UserUpdatePasswordRequest
             {
-                Password = "changeme"
+                Password = this.GenerateToken(10)
             };
 
-            //TODO: return new password
+            if (await this._userRepository.UpdatePasswordAsync(id, userChangePasswordRequest, cancellationToken))
+            {
+                return userChangePasswordRequest.Password;
+            }
 
-            return await this._userRepository.UpdatePasswordAsync(id, userChangePasswordRequest, cancellationToken);
+            return null;
+        }
+
+        private string GenerateToken(int length)
+        {
+            using (RNGCryptoServiceProvider rngCryptoServiceProvider = new RNGCryptoServiceProvider())
+            {
+                var tokenBuffer = new byte[length];
+                rngCryptoServiceProvider.GetBytes(tokenBuffer);
+                return Convert.ToBase64String(tokenBuffer);
+            }
         }
 
         public async Task<bool> CreateAsync(
@@ -63,6 +78,22 @@ namespace Nager.Authentication.Abstraction.Services
             CancellationToken cancellationToken = default)
         {
             return await this._userRepository.UpdateNameAsync(id, updateUserNameRequest, cancellationToken);
+        }
+
+        public async Task<bool> AddRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default)
+        {
+            return await this._userRepository.AddRoleAsync(id, roleName, cancellationToken);
+        }
+
+        public async Task<bool> RemoveRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default)
+        {
+            return await this._userRepository.RemoveRoleAsync(id, roleName, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(

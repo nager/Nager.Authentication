@@ -24,6 +24,16 @@ namespace Nager.Authentication.Abstraction.Services
             UserUpdateNameRequest updateUserRequest,
             CancellationToken cancellationToken = default);
 
+        Task<bool> AddRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> RemoveRoleAsync(
+            string id,
+            string roleName,
+            CancellationToken cancellationToken = default);
+
         Task<bool> DeleteAsync(
             string id,
             CancellationToken cancellationToken = default);
