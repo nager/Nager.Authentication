@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Abstraction.Controllers
 {
+    /// <summary>
+    /// User Account Controller
+    /// </summary>
     [ApiController]
     [ApiExplorerSettings(GroupName = "useraccount")]
     [Authorize]
@@ -20,6 +23,11 @@ namespace Nager.Authentication.Abstraction.Controllers
         private readonly ILogger<UserAccountController> _logger;
         private readonly IUserAccountService _userAccountService;
 
+        /// <summary>
+        /// User Account Controller
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="userAccountService"></param>
         public UserAccountController(
             ILogger<UserAccountController> logger,
             IUserAccountService userAccountService)
@@ -29,7 +37,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// ChangePassword
+        /// Change Password of the logged in user
         /// </summary>
         /// <param name="changePasswordRequest"></param>
         /// <param name="cancellationToken"></param>

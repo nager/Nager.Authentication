@@ -19,6 +19,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Abstraction.Controllers
 {
+    /// <summary>
+    /// Authentication Controller
+    /// </summary>
     [ApiController]
     [ApiExplorerSettings(GroupName = "authentication")]
     [Authorize]
@@ -29,6 +32,12 @@ namespace Nager.Authentication.Abstraction.Controllers
         private readonly IConfiguration _configuration;
         private readonly IUserAuthenticationService _userAuthenticationService;
 
+        /// <summary>
+        /// Authentication Controller
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="configuration"></param>
+        /// <param name="userAuthenticationService"></param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IConfiguration configuration,
@@ -100,14 +109,22 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// Authenticate
+        /// Authenticate via Email and Password
         /// </summary>
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
+        /// <response code="200">Authentication successful</response>
+        /// <response code="406">Invalid credential</response>
+        /// <response code="429">Credential check temporarily locked</response>
+        /// <response code="500">Unexpected error</response>
         [AllowAnonymous]
         [HttpPost]
         [Route("")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<AuthenticationResponseDto>> AuthenticateAsync(
             [Required][FromBody] AuthenticationRequestDto request,
             CancellationToken cancellationToken = default)
@@ -149,7 +166,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 case AuthenticationStatus.TemporaryBlocked:
                     return StatusCode(StatusCodes.Status429TooManyRequests);
                 default:
-                    return StatusCode(StatusCodes.Status500InternalServerError);
+                    return StatusCode(StatusCodes.Status501NotImplemented);
             }
         }
     }
