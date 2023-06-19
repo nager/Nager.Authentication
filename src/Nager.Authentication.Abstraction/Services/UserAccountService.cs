@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
 using System.Threading;
@@ -24,19 +25,20 @@ namespace Nager.Authentication.Abstraction.Services
 
         public async Task<bool> ChangePasswordAsync(
             string emailAddress,
-            UserUpdatePasswordRequest userChangePasswordRequest,
+            UserUpdatePasswordRequest userUpdatePasswordRequest,
             CancellationToken cancellationToken = default)
         {
-            var userInfo = await this._userRepository.GetUserInfoAsync(emailAddress);
-            if (userInfo == null)
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress));
+            if (userEntity == null)
             {
                 return false;
             }
 
-            return await this._userRepository.UpdatePasswordAsync(userInfo.Id, new UserUpdatePasswordRequest
-            {
-                Password = userChangePasswordRequest.Password
-            });
+            var passwordHash = PasswordHelper.HashPasword(userUpdatePasswordRequest.Password, new byte[16]);
+
+            //TODO: fix
+            //return await this._userRepository.UpdatePasswordAsync(userEntity.Id, passwordHash);
+            return true;
         }
     }
 }

@@ -1,57 +1,34 @@
 ﻿using Nager.Authentication.Abstraction.Models;
+using System.Linq.Expressions;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Nager.Authentication.Abstraction.Entities;
 
 namespace Nager.Authentication.Abstraction.Validators
 {
     public interface IUserRepository
     {
-        Task<UserInfo> GetUserInfoAsync(string emailAddress);
-
-        Task<UserInfo[]> QueryAsync(
+        Task<UserEntity[]> QueryAsync(
             int take,
             int skip,
+            Expression<Func<UserEntity, bool>>? predicate = default,
             CancellationToken cancellationToken = default);
 
-        Task<bool> ExistsAsync(
-            string emailAddress,
+        Task<UserEntity> GetAsync(
+            Expression<Func<UserEntity, bool>> predicate,
             CancellationToken cancellationToken = default);
 
-        Task<UserInfo?> GetAsync(
-            string id,
+        Task<bool> AddAsync(
+            UserEntity entity,
             CancellationToken cancellationToken = default);
 
-        Task<UserInfo?> ValidateAsync(
-            string emailAddress,
-            string passwordHash,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> CreateAsync(
-            UserCreateRequest userCreateRequest,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> UpdateNameAsync(
-            string id,
-            UserUpdateNameRequest userUpdateNameRequest,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> UpdatePasswordAsync(
-            string id,
-            UserUpdatePasswordRequest userUpdatePasswordRequest,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> AddRoleAsync(
-            string id,
-            string roleName,
-            CancellationToken cancellationToken = default);
-
-        Task<bool> RemoveRoleAsync(
-            string id,
-            string roleName,
+        Task<bool> UpdateAsync(
+            UserEntity entity,
             CancellationToken cancellationToken = default);
 
         Task<bool> DeleteAsync(
-            string id,
+            Expression<Func<UserEntity, bool>> predicate,
             CancellationToken cancellationToken = default);
     }
 }

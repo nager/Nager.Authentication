@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Nager.Authentication.Abstraction.Models
+﻿namespace Nager.Authentication.Abstraction.Models
 {
     public class UserCreateRequest
     {
@@ -8,5 +6,6 @@ namespace Nager.Authentication.Abstraction.Models
         public string Password { get; set; }
         public string? Firstname { get; set; }
         public string? Lastname { get; set; }
+        public string[] Roles { get; set; }
     }
 }

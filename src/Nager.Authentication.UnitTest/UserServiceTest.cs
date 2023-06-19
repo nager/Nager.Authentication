@@ -25,8 +25,12 @@ namespace Nager.Authentication.UnitTest
                 }
             };
 
-            IUserRepository userRepository = new InMemoryUserRepository(userInfos);
+            IUserRepository userRepository = new InMemoryUserRepository();
+
+            IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
+
+            await UserTestHelper.CreateAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {
@@ -60,8 +64,12 @@ namespace Nager.Authentication.UnitTest
             };
 
             
-            IUserRepository userRepository = new InMemoryUserRepository(userInfos);
+            IUserRepository userRepository = new InMemoryUserRepository();
+
+            IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
+
+            await UserTestHelper.CreateAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {

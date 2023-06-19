@@ -1,4 +1,6 @@
-﻿using Nager.Authentication.Abstraction.Models;
+﻿using Nager.Authentication.Abstraction.Entities;
+using Nager.Authentication.Abstraction.Helpers;
+using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
 using System;
 using System.Linq;
@@ -22,54 +24,79 @@ namespace Nager.Authentication.Abstraction.Services
             int skip,
             CancellationToken cancellationToken = default)
         {
-            var items = await this._userRepository.QueryAsync(take, skip, cancellationToken);
-            return items.OrderBy(user => user.EmailAddress).ToArray();
+            var items = await this._userRepository.QueryAsync(take, skip, cancellationToken: cancellationToken);
+            return items.OrderBy(user => user.EmailAddress).Select(userEntity => new UserInfo
+            {
+                Id = userEntity.Id,
+                EmailAddress = userEntity.EmailAddress,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                Roles = userEntity.Roles
+            }).ToArray();
         }
 
         public async Task<UserInfo?> GetAsync(
             string id,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.GetAsync(id, cancellationToken);
+            var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+
+            return new UserInfo
+            {
+                Id = userEntity.Id,
+                EmailAddress = userEntity.EmailAddress,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                Roles = userEntity.Roles
+            };
         }
 
         public async Task<string> ResetPasswordAsync(
             string id,
             CancellationToken cancellationToken = default)
         {
-            var userChangePasswordRequest = new UserUpdatePasswordRequest
-            {
-                Password = this.GenerateToken(10)
-            };
+            var password = this.GenerateToken(10);
+            var passwordHash = PasswordHelper.HashPasword(password, new byte[16]);
 
-            if (await this._userRepository.UpdatePasswordAsync(id, userChangePasswordRequest, cancellationToken))
-            {
-                return userChangePasswordRequest.Password;
-            }
+            //if (await this._userRepository.UpdatePasswordAsync(id, passwordHash, cancellationToken))
+            //{
+            //    return password;
+            //}
 
             return null;
         }
 
         private string GenerateToken(int length)
         {
-            using (RNGCryptoServiceProvider rngCryptoServiceProvider = new RNGCryptoServiceProvider())
-            {
-                var tokenBuffer = new byte[length];
-                rngCryptoServiceProvider.GetBytes(tokenBuffer);
-                return Convert.ToBase64String(tokenBuffer);
-            }
+            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var tokenBuffer = new byte[length];
+            rngCryptoServiceProvider.GetBytes(tokenBuffer);
+            return Convert.ToBase64String(tokenBuffer);
         }
 
         public async Task<bool> CreateAsync(
             UserCreateRequest createUserRequest,
             CancellationToken cancellationToken = default)
         {
-            if (await this._userRepository.ExistsAsync(createUserRequest.EmailAddress, cancellationToken))
+            var tempUserEntity = await this._userRepository.GetAsync(o => o.EmailAddress == createUserRequest.EmailAddress, cancellationToken);
+            if (tempUserEntity != null)
             {
                 return false;
             }
 
-            return await this._userRepository.CreateAsync(createUserRequest, cancellationToken);
+            var passwordHash = PasswordHelper.HashPasword(createUserRequest.Password, new byte[16]);
+
+            var userEntity = new UserEntity
+            {
+                Id = Guid.NewGuid().ToString(),
+                EmailAddress = createUserRequest.EmailAddress,
+                Firstname = createUserRequest.Firstname,
+                Lastname = createUserRequest.Lastname,
+                Roles = createUserRequest.Roles,
+                PasswordHash = passwordHash
+            };
+
+            return await this._userRepository.AddAsync(userEntity, cancellationToken);
         }
 
         public async Task<bool> UpdateAsync(
@@ -77,7 +104,16 @@ namespace Nager.Authentication.Abstraction.Services
             UserUpdateNameRequest updateUserNameRequest,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.UpdateNameAsync(id, updateUserNameRequest, cancellationToken);
+            var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+            if (userEntity == null)
+            {
+                return false;
+            }
+
+            userEntity.Firstname = updateUserNameRequest.Firstname;
+            userEntity.Lastname = updateUserNameRequest.Lastname;
+
+            return await this._userRepository.UpdateAsync(userEntity);
         }
 
         public async Task<bool> AddRoleAsync(
@@ -85,7 +121,18 @@ namespace Nager.Authentication.Abstraction.Services
             string roleName,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.AddRoleAsync(id, roleName, cancellationToken);
+            var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+            if (userEntity == null)
+            {
+                return false;
+            }
+
+            var roles = userEntity.Roles.ToList();
+            roles.Add(roleName);
+
+            userEntity.Roles = roles.ToArray();
+
+            return await this._userRepository.UpdateAsync(userEntity);
         }
 
         public async Task<bool> RemoveRoleAsync(
@@ -93,14 +140,22 @@ namespace Nager.Authentication.Abstraction.Services
             string roleName,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.RemoveRoleAsync(id, roleName, cancellationToken);
+            var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+            if (userEntity == null)
+            {
+                return false;
+            }
+
+            userEntity.Roles = userEntity.Roles.Where(o => o != roleName).ToArray();
+
+            return await this._userRepository.UpdateAsync(userEntity);
         }
 
         public async Task<bool> DeleteAsync(
             string id,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.DeleteAsync(id, cancellationToken);
+            return await this._userRepository.DeleteAsync(o => o.Id == id, cancellationToken);
         }
     }
 }

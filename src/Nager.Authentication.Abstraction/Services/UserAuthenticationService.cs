@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -116,8 +118,10 @@ namespace Nager.Authentication.Abstraction.Services
                 Password = authenticationRequest.Password
             };
 
-            var userInfo = await this._userRepository.ValidateAsync(authenticationCredentials.EmailAddress, authenticationCredentials.Password, cancellationToken);
-            if (userInfo == null)
+            var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, new byte[16]);
+
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress && o.PasswordHash.SequenceEqual(passwordHash), cancellationToken);
+            if (userEntity == null)
             {
                 this.SetInvalidLogin(authenticationRequest.IpAddress);
                 return AuthenticationStatus.Invalid;
@@ -131,7 +135,15 @@ namespace Nager.Authentication.Abstraction.Services
             string emailAddress,
             CancellationToken cancellationToken = default)
         {
-            return await this._userRepository.GetUserInfoAsync(emailAddress);
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
+            return new UserInfo
+            {
+                Id = userEntity.Id,
+                EmailAddress = userEntity.EmailAddress,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                Roles = userEntity.Roles
+            };
         }
     }
 }

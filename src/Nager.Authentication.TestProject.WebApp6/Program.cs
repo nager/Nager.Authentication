@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.InMemoryRepository;
+using Nager.Authentication.TestProject.WebApp6.Dtos;
 using System.Text;
 
 var users = new UserInfoWithPassword[]
@@ -31,7 +32,7 @@ var users = new UserInfoWithPassword[]
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMemoryCache();
-builder.Services.AddSingleton(users);
+//builder.Services.AddSingleton(users);
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
@@ -115,6 +116,14 @@ builder.Services.AddSwaggerGen(configuration =>
 
 var app = builder.Build();
 
+using (var serviceScope = app.Services.CreateScope())
+{
+    var services = serviceScope.ServiceProvider;
+
+    var userManagementService = services.GetRequiredService<IUserManagementService>();
+    UserTestHelper.CreateAsync(users, userManagementService).GetAwaiter().GetResult();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -139,9 +148,16 @@ app.UseStaticFiles(new StaticFileOptions() {  ServeUnknownFileTypes = true});
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("api/v1/Time", () =>
+app.MapGet("api/v1/UtcTime", () =>
 {
-    return DateTime.UtcNow.ToString();
+    var now = DateTime.UtcNow;
+
+    return new TimeInfoDto
+    {
+        Hour = now.Hour,
+        Minute = now.Minute,
+        Second = now.Second
+    };
 })
 .RequireAuthorization()
 .WithGroupName("general")
