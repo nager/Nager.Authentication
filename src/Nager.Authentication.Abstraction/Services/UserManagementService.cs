@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Nager.Authentication.Abstraction.Services
 {
@@ -31,7 +32,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.Roles
+                Roles = userEntity.RolesData.Split(',')
             }).ToArray();
         }
 
@@ -47,7 +48,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.Roles
+                Roles = userEntity.RolesData.Split(',')
             };
         }
 
@@ -92,7 +93,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = createUserRequest.EmailAddress,
                 Firstname = createUserRequest.Firstname,
                 Lastname = createUserRequest.Lastname,
-                Roles = createUserRequest.Roles,
+                RolesData = string.Join(',', createUserRequest.Roles),
                 PasswordHash = passwordHash
             };
 
@@ -127,10 +128,19 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            var roles = userEntity.Roles.ToList();
-            roles.Add(roleName);
+            
+            var roles = JsonSerializer.Deserialize<string[]>(userEntity.RolesData);
 
-            userEntity.Roles = roles.ToArray();
+            var roles2 = roles.ToList();
+            roles2.Add(roleName);
+
+
+            userEntity.RolesData = JsonSerializer.Serialize(roles2);
+
+            //var roles = userEntity.RolesData
+            //roles.Add(roleName);
+
+            //userEntity.Roles = roles.ToArray();
 
             return await this._userRepository.UpdateAsync(userEntity);
         }
@@ -146,7 +156,7 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            userEntity.Roles = userEntity.Roles.Where(o => o != roleName).ToArray();
+            userEntity.RolesData = userEntity.RolesData;//.Where(o => o != roleName).ToArray();
 
             return await this._userRepository.UpdateAsync(userEntity);
         }

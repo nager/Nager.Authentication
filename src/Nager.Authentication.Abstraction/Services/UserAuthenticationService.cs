@@ -112,12 +112,6 @@ namespace Nager.Authentication.Abstraction.Services
                 return AuthenticationStatus.TemporaryBlocked;
             }
 
-            var authenticationCredentials = new AuthenticationCredentials
-            {
-                EmailAddress = authenticationRequest.EmailAddress,
-                Password = authenticationRequest.Password
-            };
-
             var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, new byte[16]);
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress && o.PasswordHash.SequenceEqual(passwordHash), cancellationToken);
@@ -142,7 +136,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.Roles
+                Roles = userEntity.RolesData.Split(',')
             };
         }
     }

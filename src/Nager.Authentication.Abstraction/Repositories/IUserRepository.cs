@@ -15,7 +15,7 @@ namespace Nager.Authentication.Abstraction.Validators
             Expression<Func<UserEntity, bool>>? predicate = default,
             CancellationToken cancellationToken = default);
 
-        Task<UserEntity> GetAsync(
+        Task<UserEntity?> GetAsync(
             Expression<Func<UserEntity, bool>> predicate,
             CancellationToken cancellationToken = default);
 
