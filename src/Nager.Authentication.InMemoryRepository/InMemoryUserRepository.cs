@@ -220,10 +220,16 @@ namespace Nager.Authentication.InMemoryRepository
         public Task<UserEntity[]> QueryAsync(
             int take,
             int skip,
-            Expression<Func<UserEntity, bool>>? predicate = null,
+            Expression<Func<UserEntity, bool>>? predicate = default,
             CancellationToken cancellationToken = default)
         {
-            var items = this._userInfos.Values.AsQueryable().Where(predicate).Take(take).Skip(skip).ToArray();
+            var qurey = this._userInfos.Values.AsQueryable();
+            if (predicate != default)
+            {
+                qurey = qurey.Where(predicate);
+            }
+            var items = qurey.Take(take).Skip(skip).ToArray();
+
             return Task.FromResult(items);
         }
 

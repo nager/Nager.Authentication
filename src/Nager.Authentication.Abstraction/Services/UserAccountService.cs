@@ -36,8 +36,11 @@ namespace Nager.Authentication.Abstraction.Services
 
             var passwordHash = PasswordHelper.HashPasword(userUpdatePasswordRequest.Password, new byte[16]);
 
-            //TODO: fix
-            //return await this._userRepository.UpdatePasswordAsync(userEntity.Id, passwordHash);
+
+            userEntity.PasswordHash = passwordHash;
+
+            await this._userRepository.UpdateAsync(userEntity);
+
             return true;
         }
     }

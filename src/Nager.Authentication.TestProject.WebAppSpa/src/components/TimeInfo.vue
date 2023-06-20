@@ -34,7 +34,7 @@ async function getUtcTime () {
 <template>
   <q-btn
     outline
-    label="Get UtcTime"
+    label="Get Utc Time"
     @click="getUtcTime"
   />
 

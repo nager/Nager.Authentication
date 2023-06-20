@@ -180,8 +180,9 @@ onMounted(async () => {
 
     <UserRoleManagement
       v-if="editUser"
-      class="q-mt-md"
+      class="q-mt-xl"
       :user="editUser"
+      @role-changed="editDone()"
     />
   </DefaultDialog>
 

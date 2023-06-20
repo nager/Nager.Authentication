@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { LocalStorage } from 'quasar'
+import { useQuasar, LocalStorage } from 'quasar'
 
 import { parseToken } from '../helpers/tokenHelper'
 
+const $q = useQuasar()
 const Router = useRouter()
 
 const newPassword = ref<string>()
@@ -40,7 +41,19 @@ async function changePassword () {
 
   if (response.status !== 204) {
     console.error('cannot change password')
+    $q.notify({
+      type: 'negative',
+      message: response.statusText,
+      caption: 'Cannot change password'
+    })
+
+    return
   }
+
+  $q.notify({
+    type: 'positive',
+    message: 'Password changed'
+  })
 }
 
 </script>
@@ -66,22 +79,33 @@ async function changePassword () {
         Token valid at<br>
         {{ tokenInfo.validAt }}
       </small>
+      <q-badge
+        v-for="role in tokenInfo.roles"
+        :key="role"
+        outline
+        color="primary"
+        class="q-mr-sm"
+        :label="role"
+      />
     </div>
     <div class="row no-wrap q-pa-md">
       <div class="column">
-        <q-input
-          v-model="newPassword"
-          label="New Password"
-          type="password"
-          class="q-mb-sm"
-          dense
-          outlined
-        />
-        <q-btn
-          outline
-          label="Change Password"
-          @click="changePassword()"
-        />
+        <q-form>
+          <q-input
+            v-model="newPassword"
+            label="New Password"
+            autocomplete="new-password"
+            type="password"
+            class="q-mb-sm"
+            dense
+            outlined
+          />
+          <q-btn
+            outline
+            label="Change Password"
+            @click="changePassword()"
+          />
+        </q-form>
       </div>
 
       <q-separator

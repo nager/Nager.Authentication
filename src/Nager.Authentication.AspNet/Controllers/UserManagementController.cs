@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.AspNet.Dtos;
+using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -156,16 +157,31 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// Add role to given user id
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Role added</response>
+        /// <response code="409">Role already exists</response>
+        /// <response code="500">Unexpected error</response>
         [HttpPost]
         [Authorize(Roles = "administrator")]
         [Route("{userid}/Role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> AddRoleAsync(
             [FromRoute] string userId,
             [FromBody] UserRoleAddRequestDto userRoleAddRequest,
             CancellationToken cancellationToken = default)
         {
+            var userInfo = await this._userManagementService.GetAsync(userId, cancellationToken);
+            if (userInfo == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            if (userInfo.Roles.Contains(userRoleAddRequest.RoleName, StringComparer.OrdinalIgnoreCase))
+            {
+                return StatusCode(StatusCodes.Status409Conflict);
+            }
+
             if (await this._userManagementService.AddRoleAsync(userId, userRoleAddRequest.RoleName, cancellationToken))
             {
                 return StatusCode(StatusCodes.Status204NoContent);
@@ -178,6 +194,8 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// Remove role to given user id
         /// </summary>
         /// <returns></returns>
+        /// <response code="204">Role removed</response>
+        /// <response code="500">Unexpected error</response>
         [HttpDelete]
         [Authorize(Roles = "administrator")]
         [Route("{userid}/Role")]

@@ -14,6 +14,10 @@ const props = defineProps({
   }
 })
 
+const emit = defineEmits
+<{(e: 'roleChanged'): void
+}>()
+
 const newRoleName = ref<string>()
 
 const token = computed(() => {
@@ -33,7 +37,7 @@ async function addRoleToUser () {
   })
 
   if (response.status === 204) {
-    // emit('close')
+    emit('roleChanged')
     return
   }
 
@@ -59,7 +63,7 @@ async function removeRoleFromUser (roleName : string) {
   })
 
   if (response.status === 204) {
-    // emit('close')
+    emit('roleChanged')
     return
   }
 
@@ -79,18 +83,20 @@ async function removeRoleFromUser (roleName : string) {
     flat
     bordered
   >
-    <q-card-section>
-      <div class="text-h6">
+    <q-card-section class="q-pb-none">
+      <div class="text-subtitle2">
         Roles
       </div>
     </q-card-section>
 
     <q-card-section class="q-gutter-md">
-      <q-list bordered>
+      <q-list
+        v-if="user.roles && user.roles.length > 0"
+        bordered
+      >
         <q-item
           v-for="role in user.roles"
           :key="role"
-          v-ripple
         >
           <q-item-section>
             <q-item-label>{{ role }}</q-item-label>
@@ -108,7 +114,7 @@ async function removeRoleFromUser (roleName : string) {
       </q-list>
     </q-card-section>
 
-    <q-card-section>
+    <q-card-section class="q-pb-none">
       <div class="text-subtitle2">
         Add Role
       </div>
