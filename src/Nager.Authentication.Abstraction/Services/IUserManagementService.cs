@@ -11,8 +11,12 @@ namespace Nager.Authentication.Abstraction.Services
             int skip,
             CancellationToken cancellationToken = default);
 
-        Task<UserInfo?> GetAsync(
+        Task<UserInfo?> GetByIdAsync(
             string id,
+            CancellationToken cancellationToken = default);
+
+        Task<UserInfo?> GetByEmailAddressAsync(
+            string emailAddress,
             CancellationToken cancellationToken = default);
 
         Task<bool> CreateAsync(

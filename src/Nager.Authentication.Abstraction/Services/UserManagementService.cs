@@ -4,16 +4,15 @@ using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Validators;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Json;
 
 namespace Nager.Authentication.Abstraction.Services
 {
     public class UserManagementService : IUserManagementService
     {
         private readonly IUserRepository _userRepository;
+        private readonly char _roleSeperator = ',';
 
         public UserManagementService(IUserRepository userRepository)
         {
@@ -32,15 +31,19 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.RolesData.Split(',')
+                Roles = this.GetRoles(userEntity.RolesData)
             }).ToArray();
         }
 
-        public async Task<UserInfo?> GetAsync(
+        public async Task<UserInfo?> GetByIdAsync(
             string id,
             CancellationToken cancellationToken = default)
         {
             var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+            if (userEntity == null)
+            {
+                return null;
+            }
 
             return new UserInfo
             {
@@ -48,7 +51,27 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.RolesData.Split(',')
+                Roles = this.GetRoles(userEntity.RolesData)
+            };
+        }
+
+        public async Task<UserInfo?> GetByEmailAddressAsync(
+            string emailAddress,
+            CancellationToken cancellationToken = default)
+        {
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress, cancellationToken);
+            if (userEntity == null)
+            {
+                return null;
+            }
+
+            return new UserInfo
+            {
+                Id = userEntity.Id,
+                EmailAddress = userEntity.EmailAddress,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                Roles = this.GetRoles(userEntity.RolesData)
             };
         }
 
@@ -56,23 +79,26 @@ namespace Nager.Authentication.Abstraction.Services
             string id,
             CancellationToken cancellationToken = default)
         {
-            var password = this.GenerateToken(10);
-            var passwordHash = PasswordHelper.HashPasword(password, new byte[16]);
+            var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
+            if (userEntity == null)
+            {
+                return null;
+            }
 
-            //if (await this._userRepository.UpdatePasswordAsync(id, passwordHash, cancellationToken))
-            //{
-            //    return password;
-            //}
+            var randomPassword = PasswordHelper.CreateRandomPassword(10);
+
+            var passwordSalt = PasswordHelper.CreateSalt();
+            var passwordHash = PasswordHelper.HashPasword(randomPassword, passwordSalt);
+
+            userEntity.PasswordSalt = passwordSalt;
+            userEntity.PasswordHash = passwordHash;
+
+            if (await this._userRepository.UpdateAsync(userEntity, cancellationToken))
+            {
+                return randomPassword;
+            }
 
             return null;
-        }
-
-        private string GenerateToken(int length)
-        {
-            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
-            var tokenBuffer = new byte[length];
-            rngCryptoServiceProvider.GetBytes(tokenBuffer);
-            return Convert.ToBase64String(tokenBuffer);
         }
 
         public async Task<bool> CreateAsync(
@@ -85,16 +111,20 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            var passwordHash = PasswordHelper.HashPasword(createUserRequest.Password, new byte[16]);
+            var userId = Guid.NewGuid().ToString();
+
+            var passwordSalt = PasswordHelper.CreateSalt();
+            var passwordHash = PasswordHelper.HashPasword(createUserRequest.Password, passwordSalt);
 
             var userEntity = new UserEntity
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = userId,
                 EmailAddress = createUserRequest.EmailAddress,
                 Firstname = createUserRequest.Firstname,
                 Lastname = createUserRequest.Lastname,
-                RolesData = string.Join(',', createUserRequest.Roles),
-                PasswordHash = passwordHash
+                RolesData = this.GetRolesData(createUserRequest.Roles),
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
             };
 
             return await this._userRepository.AddAsync(userEntity, cancellationToken);
@@ -128,19 +158,7 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            
-            var roles = JsonSerializer.Deserialize<string[]>(userEntity.RolesData);
-
-            var roles2 = roles.ToList();
-            roles2.Add(roleName);
-
-
-            userEntity.RolesData = JsonSerializer.Serialize(roles2);
-
-            //var roles = userEntity.RolesData
-            //roles.Add(roleName);
-
-            //userEntity.Roles = roles.ToArray();
+            userEntity.RolesData = this.AddRoleToRoleData(userEntity.RolesData, roleName);
 
             return await this._userRepository.UpdateAsync(userEntity);
         }
@@ -156,7 +174,7 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            userEntity.RolesData = userEntity.RolesData;//.Where(o => o != roleName).ToArray();
+            userEntity.RolesData = this.RemoveRoleFromRoleData(userEntity.RolesData, roleName);
 
             return await this._userRepository.UpdateAsync(userEntity);
         }
@@ -166,6 +184,61 @@ namespace Nager.Authentication.Abstraction.Services
             CancellationToken cancellationToken = default)
         {
             return await this._userRepository.DeleteAsync(o => o.Id == id, cancellationToken);
+        }
+
+        private string[] GetRoles(string? roleData)
+        {
+            if (string.IsNullOrEmpty(roleData))
+            {
+                return Array.Empty<string>();
+            }
+
+            var roles = roleData.Split(this._roleSeperator, StringSplitOptions.RemoveEmptyEntries);
+            if (roles.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            return roles;
+        }
+
+        private string GetRolesData(string[] roles)
+        {
+            if (roles == null)
+            {
+                return string.Empty;
+            }
+
+            if (roles.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(this._roleSeperator, roles);
+        }
+
+        private string RemoveRoleFromRoleData(string? roleData, string roleName)
+        {
+            var roles = this.GetRoles(roleData);
+            if (roles.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var tempRoles = roles.Where(o => !o.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            return string.Join(this._roleSeperator, tempRoles);
+        }
+
+        private string AddRoleToRoleData(string? roleData, string roleName)
+        {
+            var roles = this.GetRoles(roleData);
+            if (roles.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var tempRoles = roles.Append(roleName.Trim(this._roleSeperator).Trim());
+            return string.Join(this._roleSeperator, tempRoles);
         }
     }
 }

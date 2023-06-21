@@ -11,7 +11,7 @@ using Nager.Authentication.MssqlRepository;
 namespace Nager.Authentication.MssqlRepository.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20230620134529_Initial")]
+    [Migration("20230621115350_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,31 +27,34 @@ namespace Nager.Authentication.MssqlRepository.Migrations
             modelBuilder.Entity("Nager.Authentication.Abstraction.Entities.UserEntity", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("EmailAddress")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Firstname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<byte[]>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("varbinary(32)");
 
                     b.Property<byte[]>("PasswordSalt")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasMaxLength(16)
+                        .HasColumnType("varbinary(16)");
 
                     b.Property<string>("RolesData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
 

@@ -26,7 +26,7 @@ namespace Nager.Authentication.MssqlRepository
                 query = query.Where(predicate);
             }
 
-            return await query.Skip(skip).Take(take).ToArrayAsync();
+            return await query.Skip(skip).Take(take).ToArrayAsync(cancellationToken);
         }
 
         public async Task<UserEntity?> GetAsync(
@@ -46,7 +46,8 @@ namespace Nager.Authentication.MssqlRepository
             UserEntity entity,
             CancellationToken cancellationToken = default)
         {
-            await this._databaseContext.AddAsync(entity, cancellationToken);
+            this._databaseContext.Users.Add(entity);
+            await this._databaseContext.SaveChangesAsync(cancellationToken);
 
             return true;
         }
@@ -56,11 +57,16 @@ namespace Nager.Authentication.MssqlRepository
             CancellationToken cancellationToken = default)
         {
             var existingItem = await this._databaseContext.Users.SingleOrDefaultAsync(o => o.Id == entity.Id, cancellationToken);
+            if (existingItem == null)
+            {
+                return false;
+            }
+
             existingItem.Firstname = entity.Firstname;
             existingItem.Lastname = entity.Lastname;
             existingItem.EmailAddress = entity.EmailAddress;
-            existingItem.PasswordHash = entity.PasswordHash;
             existingItem.RolesData = entity.RolesData;
+            existingItem.PasswordHash = entity.PasswordHash;
 
             await this._databaseContext.SaveChangesAsync(cancellationToken);
 
@@ -71,8 +77,6 @@ namespace Nager.Authentication.MssqlRepository
             Expression<Func<UserEntity, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            var query = this._databaseContext.Users.AsQueryable().Where(predicate);
-
             var items = await this._databaseContext.Users.Where(predicate).ToArrayAsync(cancellationToken);
             this._databaseContext.Users.RemoveRange(items);
             await this._databaseContext.SaveChangesAsync(cancellationToken);

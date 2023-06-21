@@ -107,22 +107,38 @@ namespace Nager.Authentication.Abstraction.Services
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default)
         {
+            if (authenticationRequest == null)
+            {
+                throw new ArgumentNullException(nameof(authenticationRequest));
+            }
+
+            if (string.IsNullOrEmpty(authenticationRequest.IpAddress))
+            {
+                throw new ArgumentNullException(nameof(authenticationRequest.IpAddress));
+            }
+
             if (await this.IsIpAddressBlockedAsync(authenticationRequest.IpAddress))
             {
                 return AuthenticationStatus.TemporaryBlocked;
             }
 
-            var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, new byte[16]);
-
-            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress && o.PasswordHash.SequenceEqual(passwordHash), cancellationToken);
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress, cancellationToken);
             if (userEntity == null)
             {
                 this.SetInvalidLogin(authenticationRequest.IpAddress);
                 return AuthenticationStatus.Invalid;
             }
 
-            this.SetValidLogin(authenticationRequest.IpAddress);
-            return AuthenticationStatus.Valid;
+            var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
+
+            if (userEntity.PasswordHash.SequenceEqual(passwordHash))
+            {
+                this.SetValidLogin(authenticationRequest.IpAddress);
+                return AuthenticationStatus.Valid;
+            }
+
+            this.SetInvalidLogin(authenticationRequest.IpAddress);
+            return AuthenticationStatus.Invalid;
         }
 
         public async Task<UserInfo> GetUserInfoAsync(

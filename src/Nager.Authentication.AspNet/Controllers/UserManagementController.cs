@@ -51,7 +51,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             [FromRoute] string userId,
             CancellationToken cancellationToken = default)
         {
-            var userInfo = await this._userManagementService.GetAsync(userId, cancellationToken);
+            var userInfo = await this._userManagementService.GetByIdAsync(userId, cancellationToken);
             if (userInfo == null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -171,7 +171,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             [FromBody] UserRoleAddRequestDto userRoleAddRequest,
             CancellationToken cancellationToken = default)
         {
-            var userInfo = await this._userManagementService.GetAsync(userId, cancellationToken);
+            var userInfo = await this._userManagementService.GetByIdAsync(userId, cancellationToken);
             if (userInfo == null)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.InMemoryRepository;
+using Nager.Authentication.MssqlRepository;
+using Nager.Authentication.TestProject.WebApp6;
 using Nager.Authentication.TestProject.WebApp6.Dtos;
 using System.Text;
 
@@ -32,8 +35,16 @@ var users = new UserInfoWithPassword[]
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMemoryCache();
-//builder.Services.AddSingleton(users);
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+//builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+
+builder.Services.AddDbContextPool<DatabaseContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("Default");
+    options.UseSqlServer(connectionString);
+});
+builder.Services.AddScoped<IUserRepository, MssqlUserRepository>();
+builder.Services.AddSingleton<MigrationHelper>();
+
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
@@ -45,8 +56,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(configuration =>
 {
-    
-
     var issuer = builder.Configuration["Authentication:Tokens:Issuer"];
     var audience = builder.Configuration["Authentication:Tokens:Audience"];
     var signingKey = builder.Configuration["Authentication:Tokens:SigningKey"];
@@ -116,12 +125,21 @@ builder.Services.AddSwaggerGen(configuration =>
 
 var app = builder.Build();
 
+var migrationHelper = app.Services.GetService<MigrationHelper>();
+if (migrationHelper != null)
+{
+    if (!await migrationHelper.UpdateDatabaseAsync())
+    {
+        return;
+    }
+}
+
 using (var serviceScope = app.Services.CreateScope())
 {
     var services = serviceScope.ServiceProvider;
 
     var userManagementService = services.GetRequiredService<IUserManagementService>();
-    UserTestHelper.CreateAsync(users, userManagementService).GetAwaiter().GetResult();
+    await UserTestHelper.CreateAsync(users, userManagementService);
 }
 
 // Configure the HTTP request pipeline.
@@ -138,8 +156,6 @@ if (app.Environment.IsDevelopment())
         configuration.SwaggerEndpoint($"/swagger/useraccount/swagger.json", "UserAccount");
     });
 }
-
-
 
 app.UseRouting();
 app.UseDefaultFiles();

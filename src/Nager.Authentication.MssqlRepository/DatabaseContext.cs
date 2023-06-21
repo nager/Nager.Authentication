@@ -17,7 +17,7 @@ namespace Nager.Authentication.MssqlRepository
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<UserEntity>().HasIndex(model => new { model.EmailAddress });
+            modelBuilder.Entity<UserEntity>().HasIndex(entity => new { entity.EmailAddress });
         }
     }
 }
