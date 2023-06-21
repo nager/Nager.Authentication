@@ -36,6 +36,8 @@ var users = new UserInfoWithPassword[]
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMemoryCache();
+
+
 //builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 
 builder.Services.AddDbContextPool<DatabaseContext>(options =>
@@ -160,7 +162,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 app.UseDefaultFiles();
-app.UseStaticFiles(new StaticFileOptions() {  ServeUnknownFileTypes = true});
+app.UseStaticFiles(new StaticFileOptions { ServeUnknownFileTypes = true });
 
 app.UseAuthentication();
 app.UseAuthorization();
