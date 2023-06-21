@@ -36,8 +36,8 @@ jobs:
       run: |
         dotnet pack --configuration Release --output $GITHUB_WORKSPACE/out src/Nager.Authentication.Abstraction/Nager.Authentication.Abstraction.csproj
         dotnet pack --configuration Release --output $GITHUB_WORKSPACE/out src/Nager.Authentication.AspNet/Nager.Authentication.AspNet.csproj
-#    - name: Push NuGet package
-#      if: github.event_name != 'pull_request'
-#      run: |
-#        cd $GITHUB_WORKSPACE/out
-#        dotnet nuget push *.nupkg --source https://www.nuget.org/api/v2/package --api-key ${{secrets.NUGET_TOKEN}} --skip-duplicate --no-symbols
+    - name: Push NuGet packages
+      if: github.event_name != 'pull_request'
+      run: |
+        cd $GITHUB_WORKSPACE/out
+        dotnet nuget push *.nupkg --source https://www.nuget.org/api/v2/package --api-key ${{secrets.NUGET_TOKEN}} --skip-duplicate --no-symbols
