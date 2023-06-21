@@ -12,7 +12,6 @@ namespace Nager.Authentication.Abstraction.Services
     public class UserManagementService : IUserManagementService
     {
         private readonly IUserRepository _userRepository;
-        private readonly char _roleSeperator = ',';
 
         public UserManagementService(IUserRepository userRepository)
         {
@@ -31,7 +30,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = this.GetRoles(userEntity.RolesData)
+                Roles = RoleHelper.GetRoles(userEntity.RolesData)
             }).ToArray();
         }
 
@@ -51,7 +50,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = this.GetRoles(userEntity.RolesData)
+                Roles = RoleHelper.GetRoles(userEntity.RolesData)
             };
         }
 
@@ -71,7 +70,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = this.GetRoles(userEntity.RolesData)
+                Roles = RoleHelper.GetRoles(userEntity.RolesData)
             };
         }
 
@@ -122,7 +121,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = createUserRequest.EmailAddress,
                 Firstname = createUserRequest.Firstname,
                 Lastname = createUserRequest.Lastname,
-                RolesData = this.GetRolesData(createUserRequest.Roles),
+                RolesData = RoleHelper.GetRolesData(createUserRequest.Roles),
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt
             };
@@ -158,7 +157,7 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            userEntity.RolesData = this.AddRoleToRoleData(userEntity.RolesData, roleName);
+            userEntity.RolesData = RoleHelper.AddRoleToRoleData(userEntity.RolesData, roleName);
 
             return await this._userRepository.UpdateAsync(userEntity);
         }
@@ -174,7 +173,7 @@ namespace Nager.Authentication.Abstraction.Services
                 return false;
             }
 
-            userEntity.RolesData = this.RemoveRoleFromRoleData(userEntity.RolesData, roleName);
+            userEntity.RolesData = RoleHelper.RemoveRoleFromRoleData(userEntity.RolesData, roleName);
 
             return await this._userRepository.UpdateAsync(userEntity);
         }
@@ -184,61 +183,6 @@ namespace Nager.Authentication.Abstraction.Services
             CancellationToken cancellationToken = default)
         {
             return await this._userRepository.DeleteAsync(o => o.Id == id, cancellationToken);
-        }
-
-        private string[] GetRoles(string? roleData)
-        {
-            if (string.IsNullOrEmpty(roleData))
-            {
-                return Array.Empty<string>();
-            }
-
-            var roles = roleData.Split(this._roleSeperator, StringSplitOptions.RemoveEmptyEntries);
-            if (roles.Length == 0)
-            {
-                return Array.Empty<string>();
-            }
-
-            return roles;
-        }
-
-        private string GetRolesData(string[] roles)
-        {
-            if (roles == null)
-            {
-                return string.Empty;
-            }
-
-            if (roles.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            return string.Join(this._roleSeperator, roles);
-        }
-
-        private string RemoveRoleFromRoleData(string? roleData, string roleName)
-        {
-            var roles = this.GetRoles(roleData);
-            if (roles.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            var tempRoles = roles.Where(o => !o.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-            return string.Join(this._roleSeperator, tempRoles);
-        }
-
-        private string AddRoleToRoleData(string? roleData, string roleName)
-        {
-            var roles = this.GetRoles(roleData);
-            if (roles.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            var tempRoles = roles.Append(roleName.Trim(this._roleSeperator).Trim());
-            return string.Join(this._roleSeperator, tempRoles);
         }
     }
 }

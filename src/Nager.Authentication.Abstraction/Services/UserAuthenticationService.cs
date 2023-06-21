@@ -152,7 +152,7 @@ namespace Nager.Authentication.Abstraction.Services
                 EmailAddress = userEntity.EmailAddress,
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
-                Roles = userEntity.RolesData.Split(',')
+                Roles = RoleHelper.GetRoles(userEntity.RolesData)
             };
         }
     }

@@ -93,7 +93,6 @@ namespace Nager.Authentication.Abstraction.Controllers
             {
                 foreach (var role in userInfo.Roles)
                 {
-                    //TODO: Check role with schema is a good chooise
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
             }

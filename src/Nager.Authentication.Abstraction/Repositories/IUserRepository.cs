@@ -1,9 +1,8 @@
-﻿using Nager.Authentication.Abstraction.Models;
-using System.Linq.Expressions;
+﻿using Nager.Authentication.Abstraction.Entities;
 using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Nager.Authentication.Abstraction.Entities;
 
 namespace Nager.Authentication.Abstraction.Validators
 {
