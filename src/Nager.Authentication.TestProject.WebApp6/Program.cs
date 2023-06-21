@@ -2,9 +2,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Nager.Authentication.Abstraction.Helpers;
+using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
-using Nager.Authentication.InMemoryRepository;
 using Nager.Authentication.MssqlRepository;
 using Nager.Authentication.TestProject.WebApp6;
 using Nager.Authentication.TestProject.WebApp6.Dtos;
@@ -139,7 +140,7 @@ using (var serviceScope = app.Services.CreateScope())
     var services = serviceScope.ServiceProvider;
 
     var userManagementService = services.GetRequiredService<IUserManagementService>();
-    await InitialUserHelper.CreateAsync(users, userManagementService);
+    await InitialUserHelper.CreateUsersAsync(users, userManagementService);
 }
 
 // Configure the HTTP request pipeline.

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
@@ -19,7 +20,7 @@ namespace Nager.Authentication.UnitTest
             {
                 new UserInfoWithPassword
                 {
-                    EmailAddress = "admin",
+                    EmailAddress = "admin@domain.com",
                     Password = "secret",
                     Roles = new [] { "Administrator" }
                 }
@@ -30,13 +31,13 @@ namespace Nager.Authentication.UnitTest
             IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
 
-            await InitialUserHelper.CreateAsync(userInfos, userManagementService);
+            await InitialUserHelper.CreateUsersAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {
                 IpAddress = "1.2.3.4",
-                EmailAddress = "admin",
-                Password = "test"
+                EmailAddress = "admin@domain.com",
+                Password = "invalidPassword"
             };
 
             for (var i = 0; i <= 10; i++)
@@ -57,8 +58,8 @@ namespace Nager.Authentication.UnitTest
             {
                 new UserInfoWithPassword
                 {
-                    EmailAddress = "admin",
-                    Password = "secret",
+                    EmailAddress = "admin@domain.com",
+                    Password = "secretPassword",
                     Roles = new [] { "Administrator" }
                 }
             };
@@ -69,13 +70,13 @@ namespace Nager.Authentication.UnitTest
             IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
 
-            await InitialUserHelper.CreateAsync(userInfos, userManagementService);
+            await InitialUserHelper.CreateUsersAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {
                 IpAddress = "1.2.3.4",
-                EmailAddress = "Admin",
-                Password = "secret"
+                EmailAddress = "admin@domain.com",
+                Password = "secretPassword"
             };
 
             var authenticationStatus = await userService.ValidateCredentialsAsync(authenticationRequest);

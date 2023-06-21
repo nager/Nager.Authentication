@@ -1,6 +1,4 @@
-﻿using Nager.Authentication.Abstraction.Models;
-
-namespace Nager.Authentication.InMemoryRepository
+﻿namespace Nager.Authentication.Abstraction.Models
 {
     public class UserInfoWithPassword : UserInfo
     {

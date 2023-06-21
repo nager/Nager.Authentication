@@ -2,11 +2,11 @@
 using Nager.Authentication.Abstraction.Services;
 using System.Threading.Tasks;
 
-namespace Nager.Authentication.InMemoryRepository
+namespace Nager.Authentication.Abstraction.Helpers
 {
     public static class InitialUserHelper
     {
-        public static async Task CreateAsync(
+        public static async Task CreateUsersAsync(
             UserInfoWithPassword[] items,
             IUserManagementService userManagementService)
         {
