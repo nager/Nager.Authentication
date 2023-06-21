@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.InMemoryRepository
 {
-    public static class UserTestHelper
+    public static class InitialUserHelper
     {
         public static async Task CreateAsync(
             UserInfoWithPassword[] items,

@@ -139,7 +139,7 @@ using (var serviceScope = app.Services.CreateScope())
     var services = serviceScope.ServiceProvider;
 
     var userManagementService = services.GetRequiredService<IUserManagementService>();
-    await UserTestHelper.CreateAsync(users, userManagementService);
+    await InitialUserHelper.CreateAsync(users, userManagementService);
 }
 
 // Configure the HTTP request pipeline.

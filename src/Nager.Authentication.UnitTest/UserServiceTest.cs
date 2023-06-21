@@ -30,7 +30,7 @@ namespace Nager.Authentication.UnitTest
             IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
 
-            await UserTestHelper.CreateAsync(userInfos, userManagementService);
+            await InitialUserHelper.CreateAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {
@@ -69,7 +69,7 @@ namespace Nager.Authentication.UnitTest
             IUserManagementService userManagementService = new UserManagementService(userRepository);
             IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
 
-            await UserTestHelper.CreateAsync(userInfos, userManagementService);
+            await InitialUserHelper.CreateAsync(userInfos, userManagementService);
 
             var authenticationRequest = new AuthenticationRequest
             {
