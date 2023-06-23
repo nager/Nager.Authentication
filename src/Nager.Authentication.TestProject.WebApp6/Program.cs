@@ -154,10 +154,10 @@ if (app.Environment.IsDevelopment())
     {
         configuration.EnableTryItOutByDefault();
         configuration.DisplayRequestDuration();
-        configuration.SwaggerEndpoint($"/swagger/general/swagger.json", "General");
-        configuration.SwaggerEndpoint($"/swagger/authentication/swagger.json", "Authentication");
-        configuration.SwaggerEndpoint($"/swagger/usermanagement/swagger.json", "UserManagement");
-        configuration.SwaggerEndpoint($"/swagger/useraccount/swagger.json", "UserAccount");
+        configuration.SwaggerEndpoint("/swagger/general/swagger.json", "General");
+        configuration.SwaggerEndpoint("/swagger/authentication/swagger.json", "Authentication");
+        configuration.SwaggerEndpoint("/swagger/usermanagement/swagger.json", "UserManagement");
+        configuration.SwaggerEndpoint("/swagger/useraccount/swagger.json", "UserAccount");
     });
 }
 
