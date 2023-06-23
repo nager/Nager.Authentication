@@ -2,7 +2,7 @@
 using Nager.Authentication.Abstraction.Services;
 using System.Threading.Tasks;
 
-namespace Nager.Authentication.Abstraction.Helpers
+namespace Nager.Authentication.Helpers
 {
     public static class InitialUserHelper
     {

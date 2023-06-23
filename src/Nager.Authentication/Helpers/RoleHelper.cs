@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Nager.Authentication.Abstraction.Helpers
+namespace Nager.Authentication.Helpers
 {
     public static class RoleHelper
     {

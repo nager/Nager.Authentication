@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Nager.Authentication.Abstraction\Nager.Authentication.Abstraction.csproj" />
     <ProjectReference Include="..\Nager.Authentication.InMemoryRepository\Nager.Authentication.InMemoryRepository.csproj" />
+    <ProjectReference Include="..\Nager.Authentication\Nager.Authentication.csproj" />
   </ItemGroup>
 
 </Project>

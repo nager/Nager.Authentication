@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
+using Nager.Authentication.Helpers;
 using Nager.Authentication.InMemoryRepository;
+using Nager.Authentication.Services;
 using System.Threading.Tasks;
 
 namespace Nager.Authentication.UnitTest

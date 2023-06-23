@@ -2,7 +2,7 @@
 
 namespace Nager.Authentication.Abstraction.Models
 {
-    internal class AuthenticationInfo
+    public class AuthenticationInfo
     {
         public DateTime LastValid { get; set; }
         public int InvalidCount { get; set; }

@@ -34,6 +34,7 @@ jobs:
         dotnet test --configuration Release --no-restore --no-build --verbosity normal
     - name: Create NuGet packages
       run: |
+        dotnet pack --configuration Release --output $GITHUB_WORKSPACE/out src/Nager.Authentication/Nager.Authentication.csproj
         dotnet pack --configuration Release --output $GITHUB_WORKSPACE/out src/Nager.Authentication.Abstraction/Nager.Authentication.Abstraction.csproj
         dotnet pack --configuration Release --output $GITHUB_WORKSPACE/out src/Nager.Authentication.AspNet/Nager.Authentication.AspNet.csproj
     - name: Push NuGet packages

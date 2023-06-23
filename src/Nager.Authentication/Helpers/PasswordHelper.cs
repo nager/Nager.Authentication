@@ -2,7 +2,7 @@
 using System;
 using System.Security.Cryptography;
 
-namespace Nager.Authentication.Abstraction.Helpers
+namespace Nager.Authentication.Helpers
 {
     public static class PasswordHelper
     {

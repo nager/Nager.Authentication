@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
+using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
+using Nager.Authentication.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Nager.Authentication.Abstraction.Services
+namespace Nager.Authentication.Services
 {
     public class UserAccountService : IUserAccountService
     {

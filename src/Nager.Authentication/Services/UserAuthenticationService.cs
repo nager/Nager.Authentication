@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
-using Nager.Authentication.Abstraction.Helpers;
 using Nager.Authentication.Abstraction.Models;
+using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
+using Nager.Authentication.Helpers;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Nager.Authentication.Abstraction.Services
+namespace Nager.Authentication.Services
 {
     /// <summary>
     /// User Authentication Service
