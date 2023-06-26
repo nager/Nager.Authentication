@@ -168,5 +168,22 @@ namespace Nager.Authentication.Abstraction.Controllers
                     return StatusCode(StatusCodes.Status501NotImplemented);
             }
         }
+
+        /// <summary>
+        /// Validate Authentication
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="204">Token valid</response>
+        /// <response code="401">Token invalid</response>
+        /// <response code="500">Unexpected error</response>
+        [HttpPost]
+        [Route("Validate")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<AuthenticationResponseDto> Validate()
+        {
+            return StatusCode(StatusCodes.Status204NoContent);
+        }
     }
 }
