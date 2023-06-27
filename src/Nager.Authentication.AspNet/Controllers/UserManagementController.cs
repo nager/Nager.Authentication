@@ -178,6 +178,11 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            if (userInfo.Roles == null)
+            {
+                userInfo.Roles = Array.Empty<string>();
+            }
+
             if (userInfo.Roles.Contains(userRoleAddRequest.RoleName, StringComparer.OrdinalIgnoreCase))
             {
                 this._logger.LogDebug($"{nameof(AddRoleAsync)} - Duplicate role detected");
