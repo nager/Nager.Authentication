@@ -131,7 +131,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <returns></returns>
         [HttpPut]
         [Authorize(Roles = "administrator")]
-        [Route("{userid}")]
+        [Route("{userId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> EditUserAsync(
@@ -162,7 +162,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <response code="500">Unexpected error</response>
         [HttpPost]
         [Authorize(Roles = "administrator")]
-        [Route("{userid}/Role")]
+        [Route("{userId}/Role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -174,11 +174,13 @@ namespace Nager.Authentication.Abstraction.Controllers
             var userInfo = await this._userManagementService.GetByIdAsync(userId, cancellationToken);
             if (userInfo == null)
             {
+                this._logger.LogError($"{nameof(AddRoleAsync)} - Cannot found userInfo");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
             if (userInfo.Roles.Contains(userRoleAddRequest.RoleName, StringComparer.OrdinalIgnoreCase))
             {
+                this._logger.LogDebug($"{nameof(AddRoleAsync)} - Duplicate role detected");
                 return StatusCode(StatusCodes.Status409Conflict);
             }
 
@@ -187,6 +189,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status204NoContent);
             }
 
+            this._logger.LogError($"{nameof(AddRoleAsync)} - Cannot add new role");
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
@@ -198,7 +201,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <response code="500">Unexpected error</response>
         [HttpDelete]
         [Authorize(Roles = "administrator")]
-        [Route("{userid}/Role")]
+        [Route("{userId}/Role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> RemoveRoleAsync(
@@ -220,7 +223,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Authorize(Roles = "administrator")]
-        [Route("{userid}")]
+        [Route("{userId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteUserAsync(

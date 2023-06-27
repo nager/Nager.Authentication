@@ -144,7 +144,7 @@ namespace Nager.Authentication.Services
             userEntity.Firstname = updateUserNameRequest.Firstname;
             userEntity.Lastname = updateUserNameRequest.Lastname;
 
-            return await this._userRepository.UpdateAsync(userEntity);
+            return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
         public async Task<bool> AddRoleAsync(
@@ -160,7 +160,7 @@ namespace Nager.Authentication.Services
 
             userEntity.RolesData = RoleHelper.AddRoleToRoleData(userEntity.RolesData, roleName);
 
-            return await this._userRepository.UpdateAsync(userEntity);
+            return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
         public async Task<bool> RemoveRoleAsync(
@@ -176,7 +176,7 @@ namespace Nager.Authentication.Services
 
             userEntity.RolesData = RoleHelper.RemoveRoleFromRoleData(userEntity.RolesData, roleName);
 
-            return await this._userRepository.UpdateAsync(userEntity);
+            return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
         public async Task<bool> DeleteAsync(
