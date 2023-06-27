@@ -185,6 +185,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status409Conflict);
             }
 
+            this._logger.LogInformation($"{nameof(AddRoleAsync)} - Add role {userRoleAddRequest.RoleName} to userId {userId}");
             if (await this._userManagementService.AddRoleAsync(userId, userRoleAddRequest.RoleName, cancellationToken))
             {
                 return StatusCode(StatusCodes.Status204NoContent);
