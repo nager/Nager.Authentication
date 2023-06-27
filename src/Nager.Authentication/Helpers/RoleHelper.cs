@@ -53,10 +53,6 @@ namespace Nager.Authentication.Helpers
         public static string AddRoleToRoleData(string? roleData, string roleName)
         {
             var roles = GetRoles(roleData);
-            if (roles.Length == 0)
-            {
-                return string.Empty;
-            }
 
             var tempRoles = roles.Append(roleName.Trim(RoleSeperator).Trim());
             return string.Join(RoleSeperator, tempRoles);
