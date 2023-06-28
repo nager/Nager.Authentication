@@ -200,17 +200,33 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// </summary>
         /// <returns></returns>
         /// <response code="204">Role removed</response>
+        /// <response code="204">Role not exists</response>
         /// <response code="500">Unexpected error</response>
         [HttpDelete]
         [Authorize(Roles = "administrator")]
         [Route("{userId}/Role")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> RemoveRoleAsync(
             [FromRoute] string userId,
             [FromBody] UserRoleRemoveRequestDto userRoleRemoveRequest,
             CancellationToken cancellationToken = default)
         {
+            var userInfo = await this._userManagementService.GetByIdAsync(userId, cancellationToken);
+            if (userInfo == null)
+            {
+                this._logger.LogError($"{nameof(RemoveRoleAsync)} - Cannot found userInfo");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            if (userInfo.Roles != null &&
+                !userInfo.Roles.Contains(userRoleRemoveRequest.RoleName, StringComparer.OrdinalIgnoreCase))
+            {
+                this._logger.LogDebug($"{nameof(RemoveRoleAsync)} - Role not found");
+                return StatusCode(StatusCodes.Status400BadRequest);
+            }
+
             if (await this._userManagementService.RemoveRoleAsync(userId, userRoleRemoveRequest.RoleName, cancellationToken))
             {
                 return StatusCode(StatusCodes.Status204NoContent);
