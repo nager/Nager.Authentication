@@ -103,6 +103,8 @@ async function removeRow (row : User) {
       message: 'Request failure',
       caption: response.statusText
     })
+
+    return
   }
 
   await getUsers()
@@ -114,8 +116,8 @@ async function editRow (row : User) {
 }
 
 async function editDone () {
-  showEditDialog.value = false
   await getUsers()
+  editUser.value = users.value?.find(o => o.id === editUser.value?.id)
 }
 
 async function addDone () {

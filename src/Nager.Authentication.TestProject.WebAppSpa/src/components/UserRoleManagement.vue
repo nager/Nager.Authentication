@@ -79,20 +79,17 @@ async function removeRoleFromUser (roleName : string) {
 </script>
 
 <template>
+  <div class="text-subtitle1 q-mt-xl">
+    Roles
+  </div>
   <q-card
     flat
     bordered
   >
-    <q-card-section class="q-pb-none">
-      <div class="text-subtitle2">
-        Roles
-      </div>
-    </q-card-section>
-
-    <q-card-section class="q-gutter-md">
+    <q-card-section class="q-pa-none">
       <q-list
         v-if="user.roles && user.roles.length > 0"
-        bordered
+        separator
       >
         <q-item
           v-for="role in user.roles"
@@ -113,24 +110,20 @@ async function removeRoleFromUser (roleName : string) {
         </q-item>
       </q-list>
     </q-card-section>
-
-    <q-card-section class="q-pb-none">
-      <div class="text-subtitle2">
-        Add Role
-      </div>
-    </q-card-section>
-    <q-card-section>
-      <q-input
-        v-model="newRoleName"
-        label="Role"
-        outlined
-      />
-      <q-btn
-        class="q-mt-sm"
-        label="Add"
-        outline
-        @click="addRoleToUser()"
-      />
-    </q-card-section>
   </q-card>
+
+  <div class="text-subtitle2 q-mt-md">
+    Add Role
+  </div>
+  <q-input
+    v-model="newRoleName"
+    label="Role"
+    outlined
+  />
+  <q-btn
+    class="q-mt-sm"
+    label="Add"
+    outline
+    @click="addRoleToUser()"
+  />
 </template>
