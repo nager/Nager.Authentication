@@ -76,6 +76,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true
     };
 });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
