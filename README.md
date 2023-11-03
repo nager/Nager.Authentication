@@ -23,6 +23,23 @@ https://www.nuget.org/packages?q=Nager.Authentication
 
 ## Integration
 
+Install NuGet Package into the WebApi Project
+```
+Install-Package Nager.Authentication.AspNet
+```
+
+Install NuGet Package into the EF Context Project
+```
+Install-Package Nager.Authentication.Abstraction
+```
+
+Add the UserEntity to the Context
+```
+public DbSet<UserEntity> Users { get; set; }
+```
+
+Update EF Migration logic
+
 `appsettings.json`<br>
 Add following config part
 ```
@@ -51,9 +68,15 @@ var users = new UserInfoWithPassword[]
 };
 ```
 
-**Add MemoryCache for brute force protection**
+**Activate Brute-Force Protection (uses MemoryCache)**
 ```
 builder.Services.AddMemoryCache();
+```
+
+**Register Repository**
+```
+// The MssqlUserRepository must be created by yourself
+builder.Services.AddScoped<IUserRepository, MssqlUserRepository>();
 ```
 
 **Register Services**
@@ -105,6 +128,8 @@ using (var serviceScope = app.Services.CreateScope())
 
 **Use Configurartion**
 ```
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
