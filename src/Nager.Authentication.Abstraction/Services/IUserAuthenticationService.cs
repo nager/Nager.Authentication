@@ -10,7 +10,7 @@ namespace Nager.Authentication.Abstraction.Services
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default);
 
-        Task<UserInfo> GetUserInfoAsync(
+        Task<UserInfo?> GetUserInfoAsync(
             string emailAddress,
             CancellationToken cancellationToken = default);
     }

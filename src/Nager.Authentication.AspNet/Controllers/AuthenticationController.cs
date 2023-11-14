@@ -54,6 +54,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             var issuer = this._configuration["Authentication:Tokens:Issuer"];
             var audience = this._configuration["Authentication:Tokens:Audience"];
             var signingKey = this._configuration["Authentication:Tokens:SigningKey"];
+
             //TODO: load from config
             var expiresAt = DateTime.UtcNow.AddDays(7);
 
@@ -149,7 +150,8 @@ namespace Nager.Authentication.Abstraction.Controllers
                     try
                     {
                         var jwtSecurityToken = await this.CreateTokenAsync(request);
-                        var token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                        var tokenHandler = new JwtSecurityTokenHandler();
+                        var token = tokenHandler.WriteToken(jwtSecurityToken);
 
                         return StatusCode(StatusCodes.Status200OK, new AuthenticationResponseDto
                         {

@@ -86,7 +86,7 @@ namespace Nager.Authentication.Services
 
             if (authenticationInfo == null)
             {
-                throw new ArgumentNullException(nameof(authenticationInfo));
+                throw new NullReferenceException(nameof(authenticationInfo));
             }
 
             if (authenticationInfo.InvalidCount < this._maxInvalidLoginsBeforeDelay)
@@ -115,13 +115,17 @@ namespace Nager.Authentication.Services
 
             if (string.IsNullOrEmpty(authenticationRequest.IpAddress))
             {
-                throw new ArgumentNullException(nameof(authenticationRequest.IpAddress));
+                throw new NullReferenceException(nameof(authenticationRequest.IpAddress));
             }
 
             if (await this.IsIpAddressBlockedAsync(authenticationRequest.IpAddress))
             {
                 return AuthenticationStatus.TemporaryBlocked;
             }
+
+            //TODO: Protect users when trying to flood the same user
+            //      with requests from different IP addresses in a short period of time
+            //      add cache item with username
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress, cancellationToken);
             if (userEntity == null)
@@ -130,10 +134,16 @@ namespace Nager.Authentication.Services
                 return AuthenticationStatus.Invalid;
             }
 
-            var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
+            if (userEntity.PasswordHash == null)
+            {
+                throw new NullReferenceException(nameof(userEntity.PasswordHash));
+            }
 
+            var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
             if (userEntity.PasswordHash.SequenceEqual(passwordHash))
             {
+                //Set Last Login Time
+
                 this.SetValidLogin(authenticationRequest.IpAddress);
                 return AuthenticationStatus.Valid;
             }
@@ -142,11 +152,17 @@ namespace Nager.Authentication.Services
             return AuthenticationStatus.Invalid;
         }
 
-        public async Task<UserInfo> GetUserInfoAsync(
+        public async Task<UserInfo?> GetUserInfoAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
         {
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
+
+            if (userEntity == null)
+            {
+                return null;
+            }
+
             return new UserInfo
             {
                 Id = userEntity.Id,
