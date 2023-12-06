@@ -6,6 +6,7 @@ using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.Helpers;
+using Nager.Authentication.InMemoryRepository;
 using Nager.Authentication.MssqlRepository;
 using Nager.Authentication.Services;
 using Nager.Authentication.TestProject.WebApp6;
@@ -39,15 +40,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMemoryCache();
 
 
-//builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 
-builder.Services.AddDbContextPool<DatabaseContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("Default");
-    options.UseSqlServer(connectionString);
-});
-builder.Services.AddScoped<IUserRepository, MssqlUserRepository>();
-builder.Services.AddSingleton<MigrationHelper>();
+//builder.Services.AddDbContextPool<DatabaseContext>(options =>
+//{
+//    var connectionString = builder.Configuration.GetConnectionString("Default");
+//    options.UseSqlServer(connectionString);
+//});
+//builder.Services.AddScoped<IUserRepository, MssqlUserRepository>();
+//builder.Services.AddSingleton<MigrationHelper>();
 
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
