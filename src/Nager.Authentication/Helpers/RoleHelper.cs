@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace Nager.Authentication.Helpers
 {
+    /// <summary>
+    /// RoleHelper
+    /// </summary>
     public static class RoleHelper
     {
         public static char RoleSeperator = ',';

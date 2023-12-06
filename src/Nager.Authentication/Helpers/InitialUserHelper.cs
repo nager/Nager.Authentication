@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Helpers
 {
+    /// <summary>
+    /// InitialUserHelper
+    /// </summary>
     public static class InitialUserHelper
     {
         public static async Task CreateUsersAsync(

@@ -4,6 +4,9 @@ using System.Security.Cryptography;
 
 namespace Nager.Authentication.Helpers
 {
+    /// <summary>
+    /// PasswordHelper
+    /// </summary>
     public static class PasswordHelper
     {
         private const int IterationCount = 10_000;
@@ -46,9 +49,9 @@ namespace Nager.Authentication.Helpers
         /// <returns></returns>
         public static string CreateRandomPassword(int length)
         {
-            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            using var randomNumberGenerator = RandomNumberGenerator.Create();
             var tokenBuffer = new byte[length];
-            rngCryptoServiceProvider.GetBytes(tokenBuffer);
+            randomNumberGenerator.GetBytes(tokenBuffer);
             return Convert.ToBase64String(tokenBuffer);
         }
     }

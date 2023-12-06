@@ -76,8 +76,8 @@ namespace Nager.Authentication.Abstraction.Controllers
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.UniqueName, request.EmailAddress),
-                new Claim(JwtRegisteredClaimNames.Email, request.EmailAddress)
+                new(JwtRegisteredClaimNames.UniqueName, request.EmailAddress),
+                new(JwtRegisteredClaimNames.Email, request.EmailAddress)
             };
 
             if (!string.IsNullOrEmpty(userInfo.Firstname))
