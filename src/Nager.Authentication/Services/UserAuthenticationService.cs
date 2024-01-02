@@ -170,7 +170,7 @@ namespace Nager.Authentication.Services
             this.SetInvalidLogin(authenticationRequest.IpAddress);
             this.SetInvalidLogin(authenticationRequest.EmailAddress);
 
-            await this._userRepository.SetLastValidationTimestampAsync(o => o.Id != userEntity.Id, cancellationTokenSource.Token);
+            await this._userRepository.SetLastValidationTimestampAsync(o => o.Id == userEntity.Id, cancellationTokenSource.Token);
 
             return AuthenticationStatus.Invalid;
         }
