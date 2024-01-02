@@ -24,22 +24,6 @@ namespace Nager.Authentication.Services
             this._userRepository = userRepository;
         }
 
-        public async Task<UserInfo[]> QueryAsync(
-            int take,
-            int skip,
-            CancellationToken cancellationToken = default)
-        {
-            var items = await this._userRepository.QueryAsync(take, skip, cancellationToken: cancellationToken);
-            return items.OrderBy(user => user.EmailAddress).Select(userEntity => new UserInfo
-            {
-                Id = userEntity.Id,
-                EmailAddress = userEntity.EmailAddress,
-                Firstname = userEntity.Firstname,
-                Lastname = userEntity.Lastname,
-                Roles = RoleHelper.GetRoles(userEntity.RolesData)
-            }).ToArray();
-        }
-
         private UserInfo MapUserInfo(UserEntity userEntity)
         {
             return new UserInfo
@@ -52,6 +36,15 @@ namespace Nager.Authentication.Services
                 LastValidationTimestamp = userEntity.LastValidationTimestamp,
                 LastSuccessfulValidationTimestamp = userEntity.LastSuccessfulValidationTimestamp
             };
+        }
+
+        public async Task<UserInfo[]> QueryAsync(
+            int take,
+            int skip,
+            CancellationToken cancellationToken = default)
+        {
+            var items = await this._userRepository.QueryAsync(take, skip, cancellationToken: cancellationToken);
+            return items.OrderBy(user => user.EmailAddress).Select(this.MapUserInfo).ToArray();
         }
 
         public async Task<UserInfo?> GetByIdAsync(

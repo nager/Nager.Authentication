@@ -36,8 +36,8 @@ namespace Nager.Authentication.InMemoryRepository
             {
                 qurey = qurey.Where(predicate);
             }
-            var items = qurey.Take(take).Skip(skip).ToArray();
 
+            var items = qurey.OrderBy(o => o.Id).Take(take).Skip(skip).ToArray();
             return Task.FromResult(items);
         }
 
