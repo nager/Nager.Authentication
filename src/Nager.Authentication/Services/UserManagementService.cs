@@ -1,4 +1,5 @@
-﻿using Nager.Authentication.Abstraction.Entities;
+﻿using Microsoft.Extensions.Logging;
+using Nager.Authentication.Abstraction.Entities;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
@@ -12,10 +13,14 @@ namespace Nager.Authentication.Services
 {
     public class UserManagementService : IUserManagementService
     {
+        private readonly ILogger<UserManagementService> _logger;
         private readonly IUserRepository _userRepository;
 
-        public UserManagementService(IUserRepository userRepository)
+        public UserManagementService(
+            ILogger<UserManagementService> logger,
+            IUserRepository userRepository)
         {
+            this._logger = logger;
             this._userRepository = userRepository;
         }
 
@@ -35,6 +40,20 @@ namespace Nager.Authentication.Services
             }).ToArray();
         }
 
+        private UserInfo MapUserInfo(UserEntity userEntity)
+        {
+            return new UserInfo
+            {
+                Id = userEntity.Id,
+                EmailAddress = userEntity.EmailAddress,
+                Firstname = userEntity.Firstname,
+                Lastname = userEntity.Lastname,
+                Roles = RoleHelper.GetRoles(userEntity.RolesData),
+                LastValidationTimestamp = userEntity.LastValidationTimestamp,
+                LastSuccessfulValidationTimestamp = userEntity.LastSuccessfulValidationTimestamp
+            };
+        }
+
         public async Task<UserInfo?> GetByIdAsync(
             string id,
             CancellationToken cancellationToken = default)
@@ -42,17 +61,11 @@ namespace Nager.Authentication.Services
             var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
             if (userEntity == null)
             {
+                this._logger.LogError($"{nameof(GetByIdAsync)} - Cannot found id:{id}");
                 return null;
             }
 
-            return new UserInfo
-            {
-                Id = userEntity.Id,
-                EmailAddress = userEntity.EmailAddress,
-                Firstname = userEntity.Firstname,
-                Lastname = userEntity.Lastname,
-                Roles = RoleHelper.GetRoles(userEntity.RolesData)
-            };
+            return this.MapUserInfo(userEntity);
         }
 
         public async Task<UserInfo?> GetByEmailAddressAsync(
@@ -65,14 +78,7 @@ namespace Nager.Authentication.Services
                 return null;
             }
 
-            return new UserInfo
-            {
-                Id = userEntity.Id,
-                EmailAddress = userEntity.EmailAddress,
-                Firstname = userEntity.Firstname,
-                Lastname = userEntity.Lastname,
-                Roles = RoleHelper.GetRoles(userEntity.RolesData)
-            };
+            return this.MapUserInfo(userEntity);
         }
 
         public async Task<string> ResetPasswordAsync(
@@ -98,6 +104,7 @@ namespace Nager.Authentication.Services
                 return randomPassword;
             }
 
+            this._logger.LogError($"{nameof(ResetPasswordAsync)} - Cannot reset password for id:{id}");
             return null;
         }
 
@@ -155,6 +162,7 @@ namespace Nager.Authentication.Services
             var userEntity = await this._userRepository.GetAsync(o => o.Id == id, cancellationToken);
             if (userEntity == null)
             {
+                this._logger.LogError($"{nameof(UpdateAsync)} - Cannot found id:{id}");
                 return false;
             }
 

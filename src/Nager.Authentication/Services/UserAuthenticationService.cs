@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
@@ -16,30 +17,39 @@ namespace Nager.Authentication.Services
     /// <remarks>With Brute-Force Protection</remarks>
     public class UserAuthenticationService : IUserAuthenticationService
     {
+        private readonly ILogger<UserAuthenticationService> _logger;
         private readonly IUserRepository _userRepository;
         private readonly IMemoryCache _memoryCache;
         private readonly string _cacheKeyPrefix = "AuthenticationInfo";
         private readonly TimeSpan _cacheLiveTime = TimeSpan.FromMinutes(10);
-        private readonly int _delayTimeMultiplier = 100;
+        private readonly int _delayTimeMultiplier = 400; //ms
         private readonly int _maxInvalidLogins = 10;
         private readonly int _maxInvalidLoginsBeforeDelay = 3;
 
+        /// <summary>
+        /// User Authentication Service
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="userRepository"></param>
+        /// <param name="memoryCache"></param>
         public UserAuthenticationService(
+            ILogger<UserAuthenticationService> logger,
             IUserRepository userRepository,
             IMemoryCache memoryCache)
         {
+            this._logger = logger;
             this._userRepository = userRepository;
             this._memoryCache = memoryCache;
         }
 
-        private string GetCacheKey(string ipAddress)
+        private string GetCacheKey(string identifier)
         {
-            return $"{this._cacheKeyPrefix}.{ipAddress}";
+            return $"{this._cacheKeyPrefix}.{identifier.Trim()}";
         }
 
-        private void SetInvalidLogin(string ipAddress)
+        private void SetInvalidLogin(string identifier)
         {
-            var cacheKey = this.GetCacheKey(ipAddress);
+            var cacheKey = this.GetCacheKey(identifier);
             if (!this._memoryCache.TryGetValue<AuthenticationInfo>(cacheKey, out var authenticationInfo))
             {
                 authenticationInfo = new AuthenticationInfo();
@@ -47,18 +57,18 @@ namespace Nager.Authentication.Services
 
             if (authenticationInfo == null)
             {
-                throw new ArgumentNullException(nameof(authenticationInfo));
+                throw new NullReferenceException(nameof(authenticationInfo));
             }
 
             authenticationInfo.InvalidCount++;
-            authenticationInfo.LastInvalid = DateTime.Now;
+            authenticationInfo.LastInvalid = DateTime.UtcNow;
 
-            this._memoryCache.Set(cacheKey, authenticationInfo, _cacheLiveTime);
+            this._memoryCache.Set(cacheKey, authenticationInfo, this._cacheLiveTime);
         }
 
-        private void SetValidLogin(string ipAddress)
+        private void SetValidLogin(string identifier)
         {
-            var cacheKey = this.GetCacheKey(ipAddress);
+            var cacheKey = this.GetCacheKey(identifier);
             if (!this._memoryCache.TryGetValue<AuthenticationInfo>(cacheKey, out var authenticationInfo))
             {
                 authenticationInfo = new AuthenticationInfo();
@@ -66,18 +76,18 @@ namespace Nager.Authentication.Services
 
             if (authenticationInfo == null)
             {
-                throw new ArgumentNullException(nameof(authenticationInfo));
+                throw new NullReferenceException(nameof(authenticationInfo));
             }
 
-            authenticationInfo.LastValid = DateTime.Now;
+            authenticationInfo.LastValid = DateTime.UtcNow;
             authenticationInfo.InvalidCount = 0;
 
             this._memoryCache.Set(cacheKey, authenticationInfo, this._cacheLiveTime);
         }
 
-        private async Task<bool> IsIpAddressBlockedAsync(string ipAddress)
+        private async Task<bool> IsIdentifierBlockedAsync(string identifier)
         {
-            var cacheKey = this.GetCacheKey(ipAddress);
+            var cacheKey = this.GetCacheKey(identifier);
 
             if (!this._memoryCache.TryGetValue<AuthenticationInfo>(cacheKey, out var authenticationInfo))
             {
@@ -96,7 +106,7 @@ namespace Nager.Authentication.Services
 
             await Task.Delay(authenticationInfo.InvalidCount * this._delayTimeMultiplier);
 
-            if (authenticationInfo.InvalidCount > this._maxInvalidLogins && DateTime.Now < authenticationInfo.LastInvalid.AddMinutes(2))
+            if (authenticationInfo.InvalidCount > this._maxInvalidLogins && DateTime.UtcNow < authenticationInfo.LastInvalid.AddMinutes(2))
             {
                 return true;
             }
@@ -115,22 +125,27 @@ namespace Nager.Authentication.Services
 
             if (string.IsNullOrEmpty(authenticationRequest.IpAddress))
             {
-                throw new NullReferenceException(nameof(authenticationRequest.IpAddress));
+                throw new NullReferenceException($"Missing {nameof(authenticationRequest.IpAddress)}");
             }
 
-            if (await this.IsIpAddressBlockedAsync(authenticationRequest.IpAddress))
+            if (await this.IsIdentifierBlockedAsync(authenticationRequest.IpAddress))
             {
+                this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - Block {authenticationRequest.IpAddress}");
                 return AuthenticationStatus.TemporaryBlocked;
             }
 
-            //TODO: Protect users when trying to flood the same user
-            //      with requests from different IP addresses in a short period of time
-            //      add cache item with username
+            if (await this.IsIdentifierBlockedAsync(authenticationRequest.EmailAddress))
+            {
+                this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - Block {authenticationRequest.EmailAddress}");
+                return AuthenticationStatus.TemporaryBlocked;
+            }
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress, cancellationToken);
             if (userEntity == null)
             {
                 this.SetInvalidLogin(authenticationRequest.IpAddress);
+                this.SetInvalidLogin(authenticationRequest.EmailAddress);
+
                 return AuthenticationStatus.Invalid;
             }
 
@@ -139,16 +154,24 @@ namespace Nager.Authentication.Services
                 throw new NullReferenceException(nameof(userEntity.PasswordHash));
             }
 
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
             var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
             if (userEntity.PasswordHash.SequenceEqual(passwordHash))
             {
-                //Set Last Login Time
-
                 this.SetValidLogin(authenticationRequest.IpAddress);
+                this.SetValidLogin(authenticationRequest.EmailAddress);
+
+                await this._userRepository.SetLastSuccessfulValidationTimestampAsync(o => o.Id == userEntity.Id, cancellationTokenSource.Token);
+
                 return AuthenticationStatus.Valid;
             }
 
             this.SetInvalidLogin(authenticationRequest.IpAddress);
+            this.SetInvalidLogin(authenticationRequest.EmailAddress);
+
+            await this._userRepository.SetLastValidationTimestampAsync(o => o.Id != userEntity.Id, cancellationTokenSource.Token);
+
             return AuthenticationStatus.Invalid;
         }
 
@@ -157,7 +180,6 @@ namespace Nager.Authentication.Services
             CancellationToken cancellationToken = default)
         {
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
-
             if (userEntity == null)
             {
                 return null;

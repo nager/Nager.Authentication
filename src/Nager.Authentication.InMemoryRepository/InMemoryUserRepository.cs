@@ -85,5 +85,35 @@ namespace Nager.Authentication.InMemoryRepository
             var isSuccessful = this._userInfos.TryRemove(item.Id, out _);
             return Task.FromResult(isSuccessful);
         }
+
+        public Task<bool> SetLastValidationTimestampAsync(
+            Expression<Func<UserEntity, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            var item = this._userInfos.Values.AsQueryable().Where(predicate).FirstOrDefault();
+            if (item == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            item.LastValidationTimestamp = DateTime.UtcNow;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> SetLastSuccessfulValidationTimestampAsync(
+            Expression<Func<UserEntity, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            var item = this._userInfos.Values.AsQueryable().Where(predicate).FirstOrDefault();
+            if (item == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            item.LastSuccessfulValidationTimestamp = DateTime.UtcNow;
+
+            return Task.FromResult(true);
+        }
     }
 }

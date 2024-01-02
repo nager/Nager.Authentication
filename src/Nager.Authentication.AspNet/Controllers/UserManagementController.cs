@@ -63,7 +63,9 @@ namespace Nager.Authentication.Abstraction.Controllers
                 EmailAddress = userInfo.EmailAddress,
                 Firstname = userInfo.Firstname,
                 Lastname = userInfo.Lastname,
-                Roles = userInfo.Roles
+                Roles = userInfo.Roles,
+                LastValidationTimestamp = userInfo.LastValidationTimestamp,
+                LastSuccessfulValidationTimestamp = userInfo.LastSuccessfulValidationTimestamp
             };
 
             return StatusCode(StatusCodes.Status200OK, item);
@@ -90,7 +92,9 @@ namespace Nager.Authentication.Abstraction.Controllers
                 EmailAddress = userInfo.EmailAddress,
                 Firstname = userInfo.Firstname,
                 Lastname = userInfo.Lastname,
-                Roles = userInfo.Roles
+                Roles = userInfo.Roles,
+                LastValidationTimestamp = userInfo.LastValidationTimestamp,
+                LastSuccessfulValidationTimestamp  = userInfo.LastSuccessfulValidationTimestamp
             });
 
             return StatusCode(StatusCodes.Status200OK, items);

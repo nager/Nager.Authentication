@@ -14,7 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Nager.Authentication.AspNet\Nager.Authentication.AspNet.csproj" />
     <ProjectReference Include="..\Nager.Authentication.InMemoryRepository\Nager.Authentication.InMemoryRepository.csproj" />
-    <ProjectReference Include="..\Nager.Authentication.MssqlRepository\Nager.Authentication.MssqlRepository.csproj" />
   </ItemGroup>
 
 </Project>

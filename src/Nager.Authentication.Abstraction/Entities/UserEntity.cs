@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nager.Authentication.Abstraction.Entities
 {
@@ -24,5 +25,9 @@ namespace Nager.Authentication.Abstraction.Entities
 
         [MaxLength(32)]
         public byte[]? PasswordHash { get; set; }
+
+        public DateTime LastValidationTimestamp { get; set; }
+
+        public DateTime LastSuccessfulValidationTimestamp { get; set; }
     }
 }

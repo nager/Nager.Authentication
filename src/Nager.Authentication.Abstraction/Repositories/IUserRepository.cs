@@ -29,5 +29,13 @@ namespace Nager.Authentication.Abstraction.Validators
         Task<bool> DeleteAsync(
             Expression<Func<UserEntity, bool>> predicate,
             CancellationToken cancellationToken = default);
+
+        Task<bool> SetLastValidationTimestampAsync(
+            Expression<Func<UserEntity, bool>> predicate,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> SetLastSuccessfulValidationTimestampAsync(
+            Expression<Func<UserEntity, bool>> predicate,
+            CancellationToken cancellationToken = default);
     }
 }

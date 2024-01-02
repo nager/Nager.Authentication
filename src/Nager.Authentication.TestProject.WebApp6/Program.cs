@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nager.Authentication.Abstraction.Models;
@@ -7,7 +6,6 @@ using Nager.Authentication.Abstraction.Services;
 using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.Helpers;
 using Nager.Authentication.InMemoryRepository;
-using Nager.Authentication.MssqlRepository;
 using Nager.Authentication.Services;
 using Nager.Authentication.TestProject.WebApp6;
 using Nager.Authentication.TestProject.WebApp6.Dtos;
@@ -41,14 +39,6 @@ builder.Services.AddMemoryCache();
 
 
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-
-//builder.Services.AddDbContextPool<DatabaseContext>(options =>
-//{
-//    var connectionString = builder.Configuration.GetConnectionString("Default");
-//    options.UseSqlServer(connectionString);
-//});
-//builder.Services.AddScoped<IUserRepository, MssqlUserRepository>();
-//builder.Services.AddSingleton<MigrationHelper>();
 
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddScoped<IUserAuthenticationService, UserAuthenticationService>();
@@ -84,10 +74,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(configuration =>
 {
     #region Provide the extended endpoint description from the xml comments
-
-    //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    //configuration.IncludeXmlComments(xmlPath);
 
     foreach (var filePath in Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly))
     {
@@ -130,15 +116,6 @@ builder.Services.AddSwaggerGen(configuration =>
 });
 
 var app = builder.Build();
-
-var migrationHelper = app.Services.GetService<MigrationHelper>();
-if (migrationHelper != null)
-{
-    if (!await migrationHelper.UpdateDatabaseAsync())
-    {
-        return;
-    }
-}
 
 using (var serviceScope = app.Services.CreateScope())
 {

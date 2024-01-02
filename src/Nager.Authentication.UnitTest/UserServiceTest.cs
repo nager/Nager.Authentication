@@ -6,6 +6,7 @@ using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.Helpers;
 using Nager.Authentication.InMemoryRepository;
 using Nager.Authentication.Services;
+using Nager.Authentication.UnitTest.Helpers;
 using System.Threading.Tasks;
 
 namespace Nager.Authentication.UnitTest
@@ -16,6 +17,9 @@ namespace Nager.Authentication.UnitTest
         [TestMethod]
         public async Task ValidateCredentialsAsync_10Retrys_Block()
         {
+            var userManagementLoggerMock = LoggerHelper.GetLogger<UserManagementService>();
+            var userAuthenticationLoggerMock = LoggerHelper.GetLogger<UserAuthenticationService>();
+
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
             var userInfos = new UserInfoWithPassword[]
             {
@@ -29,8 +33,8 @@ namespace Nager.Authentication.UnitTest
 
             IUserRepository userRepository = new InMemoryUserRepository();
 
-            IUserManagementService userManagementService = new UserManagementService(userRepository);
-            IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
+            IUserManagementService userManagementService = new UserManagementService(userManagementLoggerMock.Object, userRepository);
+            IUserAuthenticationService userService = new UserAuthenticationService(userAuthenticationLoggerMock.Object, userRepository, memoryCache);
 
             await InitialUserHelper.CreateUsersAsync(userInfos, userManagementService);
 
@@ -54,6 +58,9 @@ namespace Nager.Authentication.UnitTest
         [TestMethod]
         public async Task ValidateCredentialsAsync_UpperCaseUsername_Allow()
         {
+            var userManagementLoggerMock = LoggerHelper.GetLogger<UserManagementService>();
+            var userAuthenticationLoggerMock = LoggerHelper.GetLogger<UserAuthenticationService>();
+
             var memoryCache = new MemoryCache(new MemoryCacheOptions());
             var userInfos = new UserInfoWithPassword[]
             {
@@ -68,8 +75,8 @@ namespace Nager.Authentication.UnitTest
             
             IUserRepository userRepository = new InMemoryUserRepository();
 
-            IUserManagementService userManagementService = new UserManagementService(userRepository);
-            IUserAuthenticationService userService = new UserAuthenticationService(userRepository, memoryCache);
+            IUserManagementService userManagementService = new UserManagementService(userManagementLoggerMock.Object, userRepository);
+            IUserAuthenticationService userService = new UserAuthenticationService(userAuthenticationLoggerMock.Object, userRepository, memoryCache);
 
             await InitialUserHelper.CreateUsersAsync(userInfos, userManagementService);
 

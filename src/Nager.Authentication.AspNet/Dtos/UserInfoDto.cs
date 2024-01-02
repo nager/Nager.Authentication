@@ -1,4 +1,6 @@
-﻿namespace Nager.Authentication.AspNet.Dtos
+﻿using System;
+
+namespace Nager.Authentication.AspNet.Dtos
 {
     public class UserInfoDto
     {
@@ -11,5 +13,9 @@
         public string Firstname { get; set; }
 
         public string Lastname { get; set; }
+
+        public DateTime LastValidationTimestamp { get; set; }
+
+        public DateTime LastSuccessfulValidationTimestamp { get; set; }
     }
 }
