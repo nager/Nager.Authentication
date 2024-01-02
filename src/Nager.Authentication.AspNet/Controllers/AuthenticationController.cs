@@ -140,7 +140,7 @@ namespace Nager.Authentication.Abstraction.Controllers
             };
 
             var authenticationStatus = await this._userAuthenticationService.ValidateCredentialsAsync(authenticationRequest, cancellationToken);
-            this._logger.LogInformation($"{nameof(AuthenticateAsync)} - EmailAddress:{request.EmailAddress} {authenticationStatus}");
+            this._logger.LogInformation($"{nameof(AuthenticateAsync)} - EmailAddress:{request.EmailAddress} AuthenticationStatus:{authenticationStatus}");
 
             switch (authenticationStatus)
             {
