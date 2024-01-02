@@ -33,7 +33,7 @@ namespace Nager.Authentication.Services
                 Firstname = userEntity.Firstname,
                 Lastname = userEntity.Lastname,
                 Roles = RoleHelper.GetRoles(userEntity.RolesData),
-                LastValidationTimestamp = userEntity.LastValidationTimestamp,
+                LastFailedValidationTimestamp = userEntity.LastFailedValidationTimestamp,
                 LastSuccessfulValidationTimestamp = userEntity.LastSuccessfulValidationTimestamp
             };
         }

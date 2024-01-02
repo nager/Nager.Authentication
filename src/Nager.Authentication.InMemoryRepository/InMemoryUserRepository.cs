@@ -96,7 +96,7 @@ namespace Nager.Authentication.InMemoryRepository
                 return Task.FromResult(false);
             }
 
-            item.LastValidationTimestamp = DateTime.UtcNow;
+            item.LastFailedValidationTimestamp = DateTime.UtcNow;
 
             return Task.FromResult(true);
         }

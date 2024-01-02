@@ -26,8 +26,8 @@ namespace Nager.Authentication.Abstraction.Entities
         [MaxLength(32)]
         public byte[]? PasswordHash { get; set; }
 
-        public DateTime LastValidationTimestamp { get; set; }
+        public DateTime? LastFailedValidationTimestamp { get; set; }
 
-        public DateTime LastSuccessfulValidationTimestamp { get; set; }
+        public DateTime? LastSuccessfulValidationTimestamp { get; set; }
     }
 }

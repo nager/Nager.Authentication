@@ -8,7 +8,7 @@ namespace Nager.Authentication.UnitTest
     public class RoleHelperTest
     {
         [TestMethod]
-        public async Task AddRoleToRoleData_RoleDataNull_Successful()
+        public void AddRoleToRoleData_RoleDataNull_Successful()
         {
             var roleData = RoleHelper.AddRoleToRoleData(null, "test");
 
@@ -16,7 +16,7 @@ namespace Nager.Authentication.UnitTest
         }
 
         [TestMethod]
-        public async Task AddRoleToRoleData_RoleDataStringEmpty_Successful()
+        public void AddRoleToRoleData_RoleDataStringEmpty_Successful()
         {
             var roleData = RoleHelper.AddRoleToRoleData(string.Empty, "test");
 
@@ -24,7 +24,7 @@ namespace Nager.Authentication.UnitTest
         }
 
         [TestMethod]
-        public async Task AddRoleToRoleData_DuplicateRoleTest_Successful()
+        public void AddRoleToRoleData_DuplicateRoleTest_Successful()
         {
             var roleData = RoleHelper.AddRoleToRoleData("test", "test");
 
@@ -32,7 +32,7 @@ namespace Nager.Authentication.UnitTest
         }
 
         [TestMethod]
-        public async Task AddRoleToRoleData_DuplicateRoleTestPascalCase_Successful()
+        public void AddRoleToRoleData_DuplicateRoleTestPascalCase_Successful()
         {
             var roleData = RoleHelper.AddRoleToRoleData("test", "Test");
 

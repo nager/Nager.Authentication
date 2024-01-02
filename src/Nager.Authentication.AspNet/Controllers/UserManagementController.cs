@@ -64,7 +64,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 Firstname = userInfo.Firstname,
                 Lastname = userInfo.Lastname,
                 Roles = userInfo.Roles,
-                LastValidationTimestamp = userInfo.LastValidationTimestamp,
+                LastFailedValidationTimestamp = userInfo.LastFailedValidationTimestamp,
                 LastSuccessfulValidationTimestamp = userInfo.LastSuccessfulValidationTimestamp
             };
 
@@ -93,7 +93,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 Firstname = userInfo.Firstname,
                 Lastname = userInfo.Lastname,
                 Roles = userInfo.Roles,
-                LastValidationTimestamp = userInfo.LastValidationTimestamp,
+                LastFailedValidationTimestamp = userInfo.LastFailedValidationTimestamp,
                 LastSuccessfulValidationTimestamp  = userInfo.LastSuccessfulValidationTimestamp
             });
 
