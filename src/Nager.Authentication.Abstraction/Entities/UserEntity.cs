@@ -29,5 +29,7 @@ namespace Nager.Authentication.Abstraction.Entities
         public DateTime? LastFailedValidationTimestamp { get; set; }
 
         public DateTime? LastSuccessfulValidationTimestamp { get; set; }
+
+        public bool IsLocked { get; set; }
     }
 }

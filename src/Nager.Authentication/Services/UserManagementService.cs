@@ -124,7 +124,8 @@ namespace Nager.Authentication.Services
                 Lastname = createUserRequest.Lastname,
                 RolesData = RoleHelper.GetRolesData(createUserRequest.Roles),
                 PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
+                PasswordSalt = passwordSalt,
+                IsLocked = false
             };
 
             return await this._userRepository.AddAsync(userEntity, cancellationToken);
