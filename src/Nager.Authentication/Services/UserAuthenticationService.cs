@@ -114,6 +114,14 @@ namespace Nager.Authentication.Services
             return false;
         }
 
+        /// <summary>
+        /// Validate Credentials
+        /// </summary>
+        /// <param name="authenticationRequest"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="NullReferenceException"></exception>
         public async Task<AuthenticationStatus> ValidateCredentialsAsync(
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default)
@@ -149,6 +157,12 @@ namespace Nager.Authentication.Services
                 return AuthenticationStatus.Invalid;
             }
 
+            if (userEntity.IsLocked)
+            {
+                this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - User is locked {authenticationRequest.EmailAddress}");
+                return AuthenticationStatus.Invalid;
+            }
+
             if (userEntity.PasswordHash == null)
             {
                 throw new NullReferenceException(nameof(userEntity.PasswordHash));
@@ -175,6 +189,12 @@ namespace Nager.Authentication.Services
             return AuthenticationStatus.Invalid;
         }
 
+        /// <summary>
+        /// Get User Info
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<UserInfo?> GetUserInfoAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)

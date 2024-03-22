@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Abstraction.Services
 {
+    /// <summary>
+    /// User Management Service Interface
+    /// </summary>
     public interface IUserManagementService
     {
         Task<UserInfo[]> QueryAsync(
