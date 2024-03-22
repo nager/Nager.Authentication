@@ -7,8 +7,7 @@ using Nager.Authentication.Abstraction.Validators;
 using Nager.Authentication.Helpers;
 using Nager.Authentication.InMemoryRepository;
 using Nager.Authentication.Services;
-using Nager.Authentication.TestProject.WebApp6;
-using Nager.Authentication.TestProject.WebApp6.Dtos;
+using Nager.Authentication.TestProject.WebApp.Dtos;
 using System.Text;
 
 var users = new UserInfoWithPassword[]

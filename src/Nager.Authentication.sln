@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nager.Authentication.InMemo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestProjects", "TestProjects", "{304F534C-DF89-4D51-8698-3FB8E4156FED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nager.Authentication.TestProject.WebApp6", "Nager.Authentication.TestProject.WebApp6\Nager.Authentication.TestProject.WebApp6.csproj", "{2361CF04-D289-4264-B7A4-ED7B7F003D73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nager.Authentication.TestProject.WebApp", "Nager.Authentication.TestProject.WebApp\Nager.Authentication.TestProject.WebApp.csproj", "{2361CF04-D289-4264-B7A4-ED7B7F003D73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nager.Authentication", "Nager.Authentication\Nager.Authentication.csproj", "{BDEF5CA1-309A-4718-B325-AFE92192ED4B}"
 EndProject

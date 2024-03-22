@@ -1,4 +1,4 @@
-﻿namespace Nager.Authentication.TestProject.WebApp6.Dtos
+﻿namespace Nager.Authentication.TestProject.WebApp.Dtos
 {
     public class TimeInfoDto
     {
