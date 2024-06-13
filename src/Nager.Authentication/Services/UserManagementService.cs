@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Services
 {
+    /// <summary>
+    /// UserManagement Service
+    /// </summary>
     public class UserManagementService : IUserManagementService
     {
         private readonly ILogger<UserManagementService> _logger;

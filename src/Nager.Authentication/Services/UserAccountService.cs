@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace Nager.Authentication.Services
 {
+    /// <summary>
+    /// UserAccount Service
+    /// </summary>
     public class UserAccountService : IUserAccountService
     {
         private readonly ILogger<UserAccountService> _logger;
