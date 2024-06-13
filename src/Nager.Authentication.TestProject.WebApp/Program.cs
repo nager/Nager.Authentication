@@ -63,7 +63,8 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
         ValidateLifetime = true,
         ValidateAudience = true,
-        ValidateIssuer = true
+        ValidateIssuer = true,
+        ClockSkew = TimeSpan.Zero
     };
 });
 builder.Services.AddAuthorization();
@@ -161,9 +162,7 @@ app.MapGet("api/v1/UtcTime", () =>
 .WithGroupName("general")
 .WithName("GetTime");
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
+app.MapFallbackToFile("index.html");
+app.MapControllers();
 
 app.Run();

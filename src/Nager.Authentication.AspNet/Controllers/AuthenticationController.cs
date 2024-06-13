@@ -49,7 +49,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         private async Task<JwtSecurityToken> CreateTokenAsync(
-            AuthenticationRequestDto request)
+            string emailAddress)
         {
             var issuer = this._configuration["Authentication:Tokens:Issuer"];
             var audience = this._configuration["Authentication:Tokens:Audience"];
@@ -68,7 +68,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 throw new MissingConfigurationException($"{nameof(signingKey)} is missing");
             }
 
-            var userInfo = await this._userAuthenticationService.GetUserInfoAsync(request.EmailAddress);
+            var userInfo = await this._userAuthenticationService.GetUserInfoAsync(emailAddress);
             if (userInfo == null)
             {
                 throw new UnknownUserException();
@@ -76,9 +76,10 @@ namespace Nager.Authentication.Abstraction.Controllers
 
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.UniqueName, request.EmailAddress),
-                new(JwtRegisteredClaimNames.Email, request.EmailAddress)
+                new(JwtRegisteredClaimNames.UniqueName, emailAddress),
+                new(JwtRegisteredClaimNames.Email, emailAddress)
             };
+
 
             if (!string.IsNullOrEmpty(userInfo.Firstname))
             {
@@ -97,6 +98,43 @@ namespace Nager.Authentication.Abstraction.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
             }
+
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            return new JwtSecurityToken(issuer,
+                audience,
+                claims,
+                expires: expiresAt,
+                signingCredentials: credentials);
+        }
+
+        private JwtSecurityToken CreateTotpCheckToken(
+            AuthenticationRequestDto request)
+        {
+            var issuer = this._configuration["Authentication:Tokens:Issuer"];
+            var audience = this._configuration["Authentication:Tokens:Audience"];
+            var signingKey = this._configuration["Authentication:Tokens:SigningKey"];
+
+            var expiresAt = DateTime.UtcNow.AddMinutes(5);
+
+            if (string.IsNullOrEmpty(issuer))
+            {
+                throw new MissingConfigurationException($"{nameof(issuer)} is missing");
+            }
+
+            if (string.IsNullOrEmpty(signingKey))
+            {
+                throw new MissingConfigurationException($"{nameof(signingKey)} is missing");
+            }
+
+            var temporaryIdentity = $"totp:{request.EmailAddress}";
+
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.UniqueName, temporaryIdentity),
+                new(JwtRegisteredClaimNames.Email, temporaryIdentity)
+            };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -142,6 +180,8 @@ namespace Nager.Authentication.Abstraction.Controllers
             var authenticationStatus = await this._userAuthenticationService.ValidateCredentialsAsync(authenticationRequest, cancellationToken);
             this._logger.LogInformation($"{nameof(AuthenticateAsync)} - EmailAddress:{request.EmailAddress}, AuthenticationStatus:{authenticationStatus}");
 
+            var tokenHandler = new JwtSecurityTokenHandler();
+
             switch (authenticationStatus)
             {
                 case AuthenticationStatus.Invalid:
@@ -149,8 +189,7 @@ namespace Nager.Authentication.Abstraction.Controllers
                 case AuthenticationStatus.Valid:
                     try
                     {
-                        var jwtSecurityToken = await this.CreateTokenAsync(request);
-                        var tokenHandler = new JwtSecurityTokenHandler();
+                        var jwtSecurityToken = await this.CreateTokenAsync(request.EmailAddress);
                         var token = tokenHandler.WriteToken(jwtSecurityToken);
 
                         return StatusCode(StatusCodes.Status200OK, new AuthenticationResponseDto
@@ -164,11 +203,63 @@ namespace Nager.Authentication.Abstraction.Controllers
                         this._logger.LogError(exception, $"{nameof(AuthenticateAsync)}");
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
+                case AuthenticationStatus.MfaCodeRequired:
+                    var jwtTotpCheckToken = CreateTotpCheckToken(request);
+                    var totpToken = tokenHandler.WriteToken(jwtTotpCheckToken);
+
+                    return StatusCode(StatusCodes.Status200OK, new AuthenticationResponseDto
+                    {
+                        Token = totpToken,
+                        Expiration = jwtTotpCheckToken.ValidTo
+                    });
                 case AuthenticationStatus.TemporaryBlocked:
                     return StatusCode(StatusCodes.Status429TooManyRequests);
                 default:
                     return StatusCode(StatusCodes.Status501NotImplemented);
             }
+        }
+
+        /// <summary>
+        /// Second Step Time-based one-time password
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        ///// <response code="200">Authentication successful</response>
+        ///// <response code="406">Invalid credential</response>
+        ///// <response code="429">Credential check temporarily locked</response>
+        ///// <response code="500">Unexpected error</response>
+        [HttpPost]
+        [Route("Token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status406NotAcceptable)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<AuthenticationResponseDto>> SecondStepTotpAsync(
+            [Required][FromBody] TimeBasedOneTimeTokenRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+
+            var emailAddress = HttpContext.User.Identity?.Name;
+
+            var validEmailAddress = emailAddress.Substring(5);
+
+            var isTokenValid = await this._userAuthenticationService.ValidateTokenAsync(validEmailAddress, request.Token, cancellationToken);
+            if (!isTokenValid)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest);
+            }
+
+            var jwtSecurityToken = await this.CreateTokenAsync(validEmailAddress);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.WriteToken(jwtSecurityToken);
+
+            return StatusCode(StatusCodes.Status200OK, new AuthenticationResponseDto
+            {
+                Token = token,
+                Expiration = jwtSecurityToken.ValidTo
+            });
         }
 
         /// <summary>

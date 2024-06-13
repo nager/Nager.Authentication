@@ -9,9 +9,38 @@ namespace Nager.Authentication.Abstraction.Services
     /// </summary>
     public interface IUserAccountService
     {
+        /// <summary>
+        /// Change Password
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <param name="userChangePasswordRequest"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         Task<bool> ChangePasswordAsync(
             string emailAddress,
-            UserUpdatePasswordRequest userChangePasswordRequest,
+            UserChangePasswordRequest userChangePasswordRequest,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Get Mfa activation qr code
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<string> GetMfaActivationQrCodeAsync(
+            string emailAddress,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Activate Mfa
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <param name="token"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<bool> ActivateMfaAsync(
+            string emailAddress,
+            string token,
             CancellationToken cancellationToken = default);
     }
 }

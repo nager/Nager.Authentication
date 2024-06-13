@@ -41,6 +41,7 @@ namespace Nager.Authentication.Services
             };
         }
 
+        /// <inheritdoc />
         public async Task<UserInfo[]> QueryAsync(
             int take,
             int skip,
@@ -50,6 +51,7 @@ namespace Nager.Authentication.Services
             return items.OrderBy(user => user.EmailAddress).Select(this.MapUserInfo).ToArray();
         }
 
+        /// <inheritdoc />
         public async Task<UserInfo?> GetByIdAsync(
             string id,
             CancellationToken cancellationToken = default)
@@ -64,6 +66,7 @@ namespace Nager.Authentication.Services
             return this.MapUserInfo(userEntity);
         }
 
+        /// <inheritdoc />
         public async Task<UserInfo?> GetByEmailAddressAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
@@ -77,6 +80,7 @@ namespace Nager.Authentication.Services
             return this.MapUserInfo(userEntity);
         }
 
+        /// <inheritdoc />
         public async Task<string> ResetPasswordAsync(
             string id,
             CancellationToken cancellationToken = default)
@@ -104,6 +108,7 @@ namespace Nager.Authentication.Services
             return null;
         }
 
+        /// <inheritdoc />
         public async Task<bool> CreateAsync(
             UserCreateRequest createUserRequest,
             CancellationToken cancellationToken = default)
@@ -134,6 +139,7 @@ namespace Nager.Authentication.Services
             return await this._userRepository.AddAsync(userEntity, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> UpdateAsync(
             string id,
             UserUpdateNameRequest updateUserNameRequest,
@@ -151,6 +157,7 @@ namespace Nager.Authentication.Services
             return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> AddRoleAsync(
             string id,
             string roleName,
@@ -168,6 +175,7 @@ namespace Nager.Authentication.Services
             return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> RemoveRoleAsync(
             string id,
             string roleName,
@@ -184,6 +192,7 @@ namespace Nager.Authentication.Services
             return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> DeleteAsync(
             string id,
             CancellationToken cancellationToken = default)

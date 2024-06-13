@@ -1,0 +1,137 @@
+﻿<html>
+<head>
+    <title>Test Authentication App</title>
+    <meta name=viewport content="initial-scale=1,maximum-scale=5,minimum-scale=1,width=device-width">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="mainmenu">
+        <a href="/">Home</a>
+        <a href="/test.html">Test</a>
+        <a href="/account.html">Account</a>
+        <a href="/management.html">User Management</a>
+        <a href="/swagger">Swagger</a>
+    </div>
+
+    <div v-cloak id="app" style="padding-left:10px; padding-right:10px;">
+
+        <div v-if="token">
+            <form action="javascript:void(0);">
+                <fieldset>
+                    <legend>Change password</legend>
+
+                    <label>Password</label>
+                    <input type="password" v-model="password" /><br />
+                    <button @click="changePassword()">Change</button>
+                </fieldset>
+            </form>
+
+            <form action="javascript:void(0);">
+                <fieldset>
+                    <legend>Activate MFA</legend>
+
+                    <label>Token</label>
+                    <input type="text" v-model="activationToken" /><br />
+                    <button @click="activateMfa()">Activate</button>
+                </fieldset>
+            </form>
+
+        </div>
+
+        <img :src="test.image" />
+
+        <hr />
+
+        <div v-if="responseStatusCode" style="margin-bottom:10px;">
+            <div style="background-color:#9cc4d7; padding: 10px; line-break: anywhere;">
+                StatusCode: {{ responseStatusCode }}
+            </div>
+        </div>
+
+        <div v-if="responseData" style="margin-top:10px;">
+            <div style="background-color:#dddddd; padding:10px; line-break:anywhere;">
+                <strong>Token</strong><br />
+                {{ responseData.token }}<br />
+                <br />
+                <strong>Expiration</strong><br />
+                {{ responseData.expiration }}
+            </div>
+        </div>
+
+        <div v-if="responseError" style="margin-top:10px;">
+            <div style="background-color:#f75050; padding:10px; line-break:anywhere;">
+                <pre>{{ responseError }}</pre>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        const { createApp } = Vue
+        const tokenKey = 'token'
+
+        createApp({
+            data() {
+                return {
+                    test: '',
+                    activationToken: '',
+                    password: '',
+                    responseData: undefined,
+                    responseError: undefined,
+                    responseStatusCode: undefined
+                }
+            },
+            async created() {
+                const response = await fetch('/api/v1/UserAccount/MfaActivationInfo', {
+                    headers: {
+                        "Authorization": `Bearer ${this.token}`,
+                        "Content-Type": 'application/json'
+                    }
+                })
+                this.test = await response.json();
+            },
+            computed: {
+                token() {
+                    return localStorage.getItem(tokenKey);
+                }
+            },
+            methods: {
+                clearLastRequest() {
+                    this.responseStatusCode = undefined
+                    this.responseData = undefined
+                    this.responseError = undefined
+                },
+                async changePassword() {
+                    const response = await fetch('/api/v1/UserAccount/ChangePassword', {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": 'application/json'
+                        },
+                        body: JSON.stringify({
+                            password: this.password
+                        })
+                    })
+
+                    this.responseStatusCode = response.status
+                },
+                async activateMfa() {
+                    const response = await fetch('/api/v1/UserAccount/MfaActivate', {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.token}`,
+                            "Content-Type": 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: this.activationToken
+                        })
+                    })
+
+                    this.responseStatusCode = response.status
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

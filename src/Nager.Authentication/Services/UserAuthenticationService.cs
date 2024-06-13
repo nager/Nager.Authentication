@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Google.Authenticator;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Nager.Authentication.Abstraction.Models;
 using Nager.Authentication.Abstraction.Services;
@@ -114,14 +115,7 @@ namespace Nager.Authentication.Services
             return false;
         }
 
-        /// <summary>
-        /// Validate Credentials
-        /// </summary>
-        /// <param name="authenticationRequest"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NullReferenceException"></exception>
+        /// <inheritdoc />
         public async Task<AuthenticationStatus> ValidateCredentialsAsync(
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default)
@@ -173,6 +167,11 @@ namespace Nager.Authentication.Services
             var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
             if (userEntity.PasswordHash.SequenceEqual(passwordHash))
             {
+                if (userEntity.mfaActive)
+                {
+                    return AuthenticationStatus.MfaCodeRequired;
+                }
+
                 this.SetValidLogin(authenticationRequest.IpAddress);
                 this.SetValidLogin(authenticationRequest.EmailAddress);
 
@@ -189,12 +188,7 @@ namespace Nager.Authentication.Services
             return AuthenticationStatus.Invalid;
         }
 
-        /// <summary>
-        /// Get User Info
-        /// </summary>
-        /// <param name="emailAddress"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<UserInfo?> GetUserInfoAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
@@ -213,6 +207,24 @@ namespace Nager.Authentication.Services
                 Lastname = userEntity.Lastname,
                 Roles = RoleHelper.GetRoles(userEntity.RolesData)
             };
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ValidateTokenAsync(
+            string emailAddress,
+            string token,
+            CancellationToken cancellationToken = default)
+        {
+            var timeTolerance = TimeSpan.FromSeconds(20);
+
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
+            if (userEntity == null)
+            {
+                return false;
+            }
+
+            var twoFactorAuthenticator = new TwoFactorAuthenticator();
+            return twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token, timeTolerance);
         }
     }
 }

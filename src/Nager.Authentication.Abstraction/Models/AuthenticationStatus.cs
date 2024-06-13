@@ -4,6 +4,7 @@
     {
         Invalid,
         Valid,
+        MfaCodeRequired,
         TemporaryBlocked
     }
 }

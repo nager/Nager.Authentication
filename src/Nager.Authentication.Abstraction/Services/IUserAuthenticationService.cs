@@ -19,6 +19,11 @@ namespace Nager.Authentication.Abstraction.Services
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default);
 
+        Task<bool> ValidateTokenAsync(
+            string emailAddress,
+            string token,
+            CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Get UserInfo
         /// </summary>

@@ -30,6 +30,11 @@ namespace Nager.Authentication.Abstraction.Entities
 
         public DateTime? LastSuccessfulValidationTimestamp { get; set; }
 
+        [MaxLength(32)]
+        public byte[]? mfaSecret { get; set; }
+
+        public bool mfaActive { get; set; }
+
         public bool IsLocked { get; set; }
     }
 }
