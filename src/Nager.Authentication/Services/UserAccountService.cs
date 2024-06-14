@@ -67,9 +67,9 @@ namespace Nager.Authentication.Services
                 return false;
             }
 
-            if (userEntity.mfaSecret == null)
+            if (userEntity.MfaSecret == null)
             {
-                userEntity.mfaSecret = ByteHelper.CreatePseudoRandomNumber();
+                userEntity.MfaSecret = ByteHelper.CreatePseudoRandomNumber();
                 return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
             }
 
@@ -88,15 +88,15 @@ namespace Nager.Authentication.Services
                 return MfaActivationResult.UserNotFound;
             }
 
-            if (userEntity.mfaActive)
+            if (userEntity.MfaActive)
             {
                 return MfaActivationResult.AlreadyActive;
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token))
+            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.MfaSecret, token))
             {
-                userEntity.mfaActive = true;
+                userEntity.MfaActive = true;
                 if (await this._userRepository.UpdateAsync(userEntity, cancellationToken))
                 {
                     return MfaActivationResult.Success;
@@ -120,16 +120,16 @@ namespace Nager.Authentication.Services
                 return MfaDeactivationResult.UserNotFound;
             }
 
-            if (!userEntity.mfaActive)
+            if (!userEntity.MfaActive)
             {
                 return MfaDeactivationResult.NotActive;
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token))
+            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.MfaSecret, token))
             {
-                userEntity.mfaActive = false;
-                userEntity.mfaSecret = null;
+                userEntity.MfaActive = false;
+                userEntity.MfaSecret = null;
 
                 if (await this._userRepository.UpdateAsync(userEntity, cancellationToken))
                 {
@@ -142,7 +142,7 @@ namespace Nager.Authentication.Services
             return MfaDeactivationResult.InvalidCode;
         }
 
-        public async Task<MfaInformation> GetMfaInformationAsync(
+        public async Task<MfaInformation?> GetMfaInformationAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
         {
@@ -152,7 +152,7 @@ namespace Nager.Authentication.Services
                 return null;
             }
 
-            if (userEntity.mfaActive)
+            if (userEntity.MfaActive)
             {
                 return new MfaInformation
                 {
@@ -166,7 +166,7 @@ namespace Nager.Authentication.Services
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            var setupCode = twoFactorAuthenticator.GenerateSetupCode(this._issuer, emailAddress, userEntity.mfaSecret);
+            var setupCode = twoFactorAuthenticator.GenerateSetupCode(this._issuer, emailAddress, userEntity.MfaSecret);
 
             return new MfaInformation
             {

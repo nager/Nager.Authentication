@@ -182,7 +182,7 @@ namespace Nager.Authentication.Services
             var passwordHash = PasswordHelper.HashPasword(authenticationRequest.Password, userEntity.PasswordSalt);
             if (userEntity.PasswordHash.SequenceEqual(passwordHash))
             {
-                if (userEntity.mfaActive)
+                if (userEntity.MfaActive)
                 {
                     var mfaIdentifier = Guid.NewGuid().ToString();
                     var cacheKey = this.GetCacheKey(mfaIdentifier);
@@ -271,7 +271,7 @@ namespace Nager.Authentication.Services
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            var isTokenValid = twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token, timeTolerance);
+            var isTokenValid = twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.MfaSecret, token, timeTolerance);
 
             return new ValidateTokenResult
             {
