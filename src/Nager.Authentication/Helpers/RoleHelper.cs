@@ -4,7 +4,7 @@ using System.Linq;
 namespace Nager.Authentication.Helpers
 {
     /// <summary>
-    /// RoleHelper
+    /// Role Helper
     /// </summary>
     public static class RoleHelper
     {

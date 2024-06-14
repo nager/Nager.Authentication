@@ -12,13 +12,18 @@ using System.Threading.Tasks;
 namespace Nager.Authentication.Services
 {
     /// <summary>
-    /// UserManagement Service
+    /// User Management Service
     /// </summary>
     public class UserManagementService : IUserManagementService
     {
         private readonly ILogger<UserManagementService> _logger;
         private readonly IUserRepository _userRepository;
 
+        /// <summary>
+        /// User Management Service
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="userRepository"></param>
         public UserManagementService(
             ILogger<UserManagementService> logger,
             IUserRepository userRepository)
@@ -93,7 +98,7 @@ namespace Nager.Authentication.Services
 
             var randomPassword = PasswordHelper.CreateRandomPassword(10);
 
-            var passwordSalt = PasswordHelper.CreateSalt();
+            var passwordSalt = ByteHelper.CreatePseudoRandomNumber();
             var passwordHash = PasswordHelper.HashPasword(randomPassword, passwordSalt);
 
             userEntity.PasswordSalt = passwordSalt;
@@ -121,7 +126,7 @@ namespace Nager.Authentication.Services
 
             var userId = Guid.NewGuid().ToString();
 
-            var passwordSalt = PasswordHelper.CreateSalt();
+            var passwordSalt = ByteHelper.CreatePseudoRandomNumber();
             var passwordHash = PasswordHelper.HashPasword(createUserRequest.Password, passwordSalt);
 
             var userEntity = new UserEntity

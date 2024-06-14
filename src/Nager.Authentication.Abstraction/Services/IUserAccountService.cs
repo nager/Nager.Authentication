@@ -22,12 +22,12 @@ namespace Nager.Authentication.Abstraction.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Get Mfa activation qr code
+        /// Get Mfa Information
         /// </summary>
         /// <param name="emailAddress"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> GetMfaActivationQrCodeAsync(
+        Task<MfaInformation> GetMfaInformationAsync(
             string emailAddress,
             CancellationToken cancellationToken = default);
 
@@ -38,7 +38,19 @@ namespace Nager.Authentication.Abstraction.Services
         /// <param name="token"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<bool> ActivateMfaAsync(
+        Task<MfaActivationResult> ActivateMfaAsync(
+            string emailAddress,
+            string token,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deactivate Mfa
+        /// </summary>
+        /// <param name="emailAddress"></param>
+        /// <param name="token"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<MfaDeactivationResult> DeactivateMfaAsync(
             string emailAddress,
             string token,
             CancellationToken cancellationToken = default);

@@ -47,12 +47,12 @@ namespace Nager.Authentication.UnitTest
 
             for (var i = 0; i <= 10; i++)
             {
-                var authenticationStatus = await userService.ValidateCredentialsAsync(authenticationRequest);
-                Assert.AreEqual(AuthenticationStatus.Invalid, authenticationStatus, $"Retry: {i}");
+                var authenticationResult = await userService.ValidateCredentialsAsync(authenticationRequest);
+                Assert.AreEqual(AuthenticationStatus.Invalid, authenticationResult.Status, $"Retry: {i}");
             }
 
-            var authenticationStatus1 = await userService.ValidateCredentialsAsync(authenticationRequest);
-            Assert.AreEqual(AuthenticationStatus.TemporaryBlocked, authenticationStatus1);
+            var authenticationResult1 = await userService.ValidateCredentialsAsync(authenticationRequest);
+            Assert.AreEqual(AuthenticationStatus.TemporaryBlocked, authenticationResult1.Status);
         }
 
         [TestMethod]
@@ -87,8 +87,8 @@ namespace Nager.Authentication.UnitTest
                 Password = "secretPassword"
             };
 
-            var authenticationStatus = await userService.ValidateCredentialsAsync(authenticationRequest);
-            Assert.AreEqual(AuthenticationStatus.Valid, authenticationStatus);
+            var authenticationResult = await userService.ValidateCredentialsAsync(authenticationRequest);
+            Assert.AreEqual(AuthenticationStatus.Valid, authenticationResult.Status);
         }
     }
 }

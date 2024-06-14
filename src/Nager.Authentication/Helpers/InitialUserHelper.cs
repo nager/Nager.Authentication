@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Nager.Authentication.Helpers
 {
     /// <summary>
-    /// InitialUserHelper
+    /// Initial User Helper
     /// </summary>
     public static class InitialUserHelper
     {

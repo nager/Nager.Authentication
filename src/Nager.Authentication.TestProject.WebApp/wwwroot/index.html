@@ -15,32 +15,39 @@
 
     <div v-cloak id="app" style="padding-left:10px; padding-right:10px;">
 
-        <div v-if="token">
+        <div v-if="authenticationToken">
             <button @click="logout">Logout</button>
 
             <div style="margin-top:30px; background-color:#d6fdd7;">
                 <div style="padding:10px;">
                     <strong>Token Content</strong><br />
                     <pre>{{ tokenInfo }}</pre>
-
-                    <input type="text" v-model="mfaToken" />
-                    <button @click="sendToken()">Send Token</button>
                 </div>
             </div>
         </div>
         <div v-else>
-            <div>
-                <strong>EmailAddress</strong><br />
-                <input type="text" v-model="emailAddress" />
-            </div>
-            <div style="margin-top:6px;">
-                <strong>Password</strong><br />
-                <input type="password" v-model="password" />
-            </div>
+            <form @submit.prevent="login()">
+                <div>
+                    <strong>EmailAddress</strong><br />
+                    <input type="text" v-model="emailAddress" />
+                </div>
+                <div style="margin-top:6px;">
+                    <strong>Password</strong><br />
+                    <input type="password" v-model="password" />
+                </div>
 
-            <div style="margin-top:12px;">
-                <button @click="login()">Login</button>
-            </div>
+                <div style="margin-top:12px;">
+                    <button type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+
+        <div v-if="showMfaTokenBox">
+            <h2>MFA - Second step required</h2>
+            <form @submit.prevent="sendToken()">
+                <input type="text" v-model="mfaToken" />
+                <button type="submit">Send Token</button>
+            </form>
         </div>
 
         <hr />
@@ -78,8 +85,10 @@
         createApp({
             data() {
                 return {
-                    token: undefined,
+                    authenticationToken: undefined,
                     mfaToken: undefined,
+                    mfaIdentifier: undefined,
+                    showMfaTokenBox: false,
                     emailAddress: '',
                     password: '',
                     responseData: undefined,
@@ -88,11 +97,11 @@
                 }
             },
             created() {
-                this.token = localStorage.getItem(tokenKey)
+                this.authenticationToken = localStorage.getItem(tokenKey)
             },
             computed: {
                 tokenInfo() {
-                    const parts = this.token.split('.')
+                    const parts = this.authenticationToken.split('.')
 
                     if (parts.length !== 3) {
                         return
@@ -109,7 +118,7 @@
                 },
                 logout() {
                     localStorage.removeItem(tokenKey)
-                    this.token = undefined
+                    this.authenticationToken = undefined
 
                     this.clearLastRequest()
                 },
@@ -129,20 +138,24 @@
                         const token = this.responseData.token
 
                         localStorage.setItem(tokenKey, token)
-                        this.token = token
+                        this.authenticationToken = token
 
                     } else if (response.status === 400) {
                         this.responseError = await response.json()
+                    } else if (response.status === 401) {
+                        const mfa = await response.json()
+                        this.mfaIdentifier = mfa.mfaIdentifier
+                        this.showMfaTokenBox = true
                     }
                 },
                 async sendToken() {
                     const response = await fetch('/api/v1/Authentication/Token', {
                         method: "POST",
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
                             "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
+                            mfaIdentifier: this.mfaIdentifier,
                             token: this.mfaToken
                         })
                     })
@@ -155,7 +168,7 @@
                         const token = this.responseData.token
 
                         localStorage.setItem(tokenKey, token)
-                        this.token = token
+                        this.authenticationToken = token
 
                     } else if (response.status === 400) {
                         this.responseError = await response.json()

@@ -79,7 +79,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <response code="204">Password changed</response>
         /// <response code="500">Unexpected error</response>
         [HttpGet]
-        [Route("MfaActivationInfo")]
+        [Route("Mfa")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetMfaActivationAsync(
@@ -91,13 +91,17 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            var image = await this._userAccountService.GetMfaActivationQrCodeAsync(emailAddress, cancellationToken);
+            var information = await this._userAccountService.GetMfaInformationAsync(emailAddress, cancellationToken);
+            if (information == null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
-            return StatusCode(StatusCodes.Status200OK, new { image = image});
+            return StatusCode(StatusCodes.Status200OK, information);
         }
 
         /// <summary>
-        /// Activate mfa
+        /// Activate Mfa
         /// </summary>
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
@@ -105,7 +109,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <response code="204">Password changed</response>
         /// <response code="500">Unexpected error</response>
         [HttpPost]
-        [Route("MfaActivate")]
+        [Route("Mfa/Activate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> ActivateMfaAsync(
@@ -118,12 +122,66 @@ namespace Nager.Authentication.Abstraction.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            if (await this._userAccountService.ActivateMfaAsync(emailAddress, request.Token, cancellationToken))
+            var mfaResult = await this._userAccountService.ActivateMfaAsync(emailAddress, request.Token, cancellationToken);
+
+            switch (mfaResult)
             {
-                return StatusCode(StatusCodes.Status204NoContent);
+                case MfaActivationResult.Success:
+                    return StatusCode(StatusCodes.Status204NoContent);
+
+                case MfaActivationResult.UserNotFound:
+                case MfaActivationResult.Failed:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+
+                case MfaActivationResult.AlreadyActive:
+                case MfaActivationResult.InvalidCode:
+                    return StatusCode(StatusCodes.Status400BadRequest, new { error = mfaResult.ToString() });
+
+                default:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+            }           
+        }
+
+        /// <summary>
+        /// Deactivate Mfa
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <response code="204">Password changed</response>
+        /// <response code="500">Unexpected error</response>
+        [HttpPost]
+        [Route("Mfa/Deactivate")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> DeactivateMfaAsync(
+            [Required][FromBody] TimeBasedOneTimeTokenRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            var emailAddress = HttpContext.User.Identity?.Name;
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            var mfaResult = await this._userAccountService.DeactivateMfaAsync(emailAddress, request.Token, cancellationToken);
+
+            switch (mfaResult)
+            {
+                case MfaDeactivationResult.Success:
+                    return StatusCode(StatusCodes.Status204NoContent);
+
+                case MfaDeactivationResult.UserNotFound:
+                case MfaDeactivationResult.Failed:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+
+                case MfaDeactivationResult.NotActive:
+                case MfaDeactivationResult.InvalidCode:
+                    return StatusCode(StatusCodes.Status400BadRequest, new { error = mfaResult.ToString() });
+
+                default:
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

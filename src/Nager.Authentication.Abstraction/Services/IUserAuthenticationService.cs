@@ -15,12 +15,12 @@ namespace Nager.Authentication.Abstraction.Services
         /// <param name="authenticationRequest"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<AuthenticationStatus> ValidateCredentialsAsync(
+        Task<AuthenticationResult> ValidateCredentialsAsync(
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default);
 
-        Task<bool> ValidateTokenAsync(
-            string emailAddress,
+        Task<ValidateTokenResult> ValidateTokenAsync(
+            string mfaIdentifier,
             string token,
             CancellationToken cancellationToken = default);
 

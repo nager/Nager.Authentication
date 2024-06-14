@@ -55,7 +55,7 @@
                 }
             },
             computed: {
-                token() {
+                authenticationToken() {
                     return localStorage.getItem(tokenKey);
                 }
             },
@@ -67,7 +67,7 @@
 
                     const response = await fetch('/api/v1/UtcTime', {
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         }
                     })

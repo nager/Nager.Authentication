@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Nager.Authentication.Services
 {
     /// <summary>
-    /// UserAccount Service
+    /// User Account Service
     /// </summary>
     public class UserAccountService : IUserAccountService
     {
@@ -20,6 +20,12 @@ namespace Nager.Authentication.Services
         private readonly IUserRepository _userRepository;
         private readonly string _issuer;
 
+        /// <summary>
+        /// User Account Service
+        /// </summary>
+        /// <param name="userRepository"></param>
+        /// <param name="configuration"></param>
+        /// <param name="logger"></param>
         public UserAccountService(
             IUserRepository userRepository,
             IConfiguration configuration,
@@ -46,13 +52,97 @@ namespace Nager.Authentication.Services
             var passwordHash = PasswordHelper.HashPasword(userUpdatePasswordRequest.Password, userEntity.PasswordSalt);
             userEntity.PasswordHash = passwordHash;
 
-            await this._userRepository.UpdateAsync(userEntity);
+            await this._userRepository.UpdateAsync(userEntity, cancellationToken);
+
+            return true;
+        }
+
+        private async Task<bool> CreateMfaSecretAsync(
+            string emailAddress,
+            CancellationToken cancellationToken = default)
+        {
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress), cancellationToken);
+            if (userEntity == null)
+            {
+                return false;
+            }
+
+            if (userEntity.mfaSecret == null)
+            {
+                userEntity.mfaSecret = ByteHelper.CreatePseudoRandomNumber();
+                return await this._userRepository.UpdateAsync(userEntity, cancellationToken);
+            }
 
             return true;
         }
 
         /// <inheritdoc />
-        public async Task<string?> GetMfaActivationQrCodeAsync(
+        public async Task<MfaActivationResult> ActivateMfaAsync(
+            string emailAddress,
+            string token,
+            CancellationToken cancellationToken = default)
+        {
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress), cancellationToken);
+            if (userEntity == null)
+            {
+                return MfaActivationResult.UserNotFound;
+            }
+
+            if (userEntity.mfaActive)
+            {
+                return MfaActivationResult.AlreadyActive;
+            }
+
+            var twoFactorAuthenticator = new TwoFactorAuthenticator();
+            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token))
+            {
+                userEntity.mfaActive = true;
+                if (await this._userRepository.UpdateAsync(userEntity, cancellationToken))
+                {
+                    return MfaActivationResult.Success;
+                }
+
+                return MfaActivationResult.Failed;
+            }
+
+            return MfaActivationResult.InvalidCode;
+        }
+
+        /// <inheritdoc />
+        public async Task<MfaDeactivationResult> DeactivateMfaAsync(
+            string emailAddress,
+            string token,
+            CancellationToken cancellationToken = default)
+        {
+            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress), cancellationToken);
+            if (userEntity == null)
+            {
+                return MfaDeactivationResult.UserNotFound;
+            }
+
+            if (!userEntity.mfaActive)
+            {
+                return MfaDeactivationResult.NotActive;
+            }
+
+            var twoFactorAuthenticator = new TwoFactorAuthenticator();
+            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token))
+            {
+                userEntity.mfaActive = false;
+                userEntity.mfaSecret = null;
+
+                if (await this._userRepository.UpdateAsync(userEntity, cancellationToken))
+                {
+                    return MfaDeactivationResult.Success;
+                }
+
+                return MfaDeactivationResult.Failed;
+            }
+
+            return MfaDeactivationResult.InvalidCode;
+        }
+
+        public async Task<MfaInformation> GetMfaInformationAsync(
             string emailAddress,
             CancellationToken cancellationToken = default)
         {
@@ -62,42 +152,27 @@ namespace Nager.Authentication.Services
                 return null;
             }
 
-            if (userEntity.mfaSecret == null)
+            if (userEntity.mfaActive)
             {
-                userEntity.mfaSecret = PasswordHelper.CreateSalt();
-                if (!await this._userRepository.UpdateAsync(userEntity))
+                return new MfaInformation
                 {
-                    this._logger.LogError("Cannot update mfaSecret");
-                    return null;
-                }
+                    IsActive = true
+                };
+            }
+
+            if (!await this.CreateMfaSecretAsync(emailAddress, cancellationToken))
+            {
+                return null;
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
             var setupCode = twoFactorAuthenticator.GenerateSetupCode(this._issuer, emailAddress, userEntity.mfaSecret);
 
-            return setupCode.QrCodeSetupImageUrl;
-        }
-
-        /// <inheritdoc />
-        public async Task<bool> ActivateMfaAsync(
-            string emailAddress,
-            string token,
-            CancellationToken cancellationToken = default)
-        {
-            var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress), cancellationToken);
-            if (userEntity == null)
+            return new MfaInformation
             {
-                return false;
-            }
-
-            var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            if (twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token))
-            {
-                userEntity.mfaActive = true;
-                return await this._userRepository.UpdateAsync(userEntity);
-            }
-
-            return false;
+                IsActive = false,
+                ActivationQrCode = setupCode.QrCodeSetupImageUrl
+            };
         }
     }
 }

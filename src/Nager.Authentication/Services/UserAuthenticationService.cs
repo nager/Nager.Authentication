@@ -116,7 +116,7 @@ namespace Nager.Authentication.Services
         }
 
         /// <inheritdoc />
-        public async Task<AuthenticationStatus> ValidateCredentialsAsync(
+        public async Task<AuthenticationResult> ValidateCredentialsAsync(
             AuthenticationRequest authenticationRequest,
             CancellationToken cancellationToken = default)
         {
@@ -133,13 +133,21 @@ namespace Nager.Authentication.Services
             if (await this.IsIdentifierBlockedAsync(authenticationRequest.IpAddress))
             {
                 this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - Block {authenticationRequest.IpAddress}");
-                return AuthenticationStatus.TemporaryBlocked;
+
+                return new AuthenticationResult
+                {
+                    Status = AuthenticationStatus.TemporaryBlocked
+                };
             }
 
             if (await this.IsIdentifierBlockedAsync(authenticationRequest.EmailAddress))
             {
                 this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - Block {authenticationRequest.EmailAddress}");
-                return AuthenticationStatus.TemporaryBlocked;
+
+                return new AuthenticationResult
+                {
+                    Status = AuthenticationStatus.TemporaryBlocked
+                };
             }
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == authenticationRequest.EmailAddress, cancellationToken);
@@ -148,13 +156,20 @@ namespace Nager.Authentication.Services
                 this.SetInvalidLogin(authenticationRequest.IpAddress);
                 this.SetInvalidLogin(authenticationRequest.EmailAddress);
 
-                return AuthenticationStatus.Invalid;
+                return new AuthenticationResult
+                {
+                    Status = AuthenticationStatus.Invalid
+                };
             }
 
             if (userEntity.IsLocked)
             {
                 this._logger.LogWarning($"{nameof(ValidateCredentialsAsync)} - User is locked {authenticationRequest.EmailAddress}");
-                return AuthenticationStatus.Invalid;
+
+                return new AuthenticationResult
+                {
+                    Status = AuthenticationStatus.Invalid
+                };
             }
 
             if (userEntity.PasswordHash == null)
@@ -169,7 +184,19 @@ namespace Nager.Authentication.Services
             {
                 if (userEntity.mfaActive)
                 {
-                    return AuthenticationStatus.MfaCodeRequired;
+                    var mfaIdentifier = Guid.NewGuid().ToString();
+                    var cacheKey = this.GetCacheKey(mfaIdentifier);
+
+                    this._memoryCache.Set(cacheKey, authenticationRequest.EmailAddress, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(120)
+                    });
+
+                    return new AuthenticationResult
+                    {
+                        Status = AuthenticationStatus.MfaCodeRequired,
+                        MfaIdentifier = mfaIdentifier
+                    };
                 }
 
                 this.SetValidLogin(authenticationRequest.IpAddress);
@@ -177,7 +204,10 @@ namespace Nager.Authentication.Services
 
                 await this._userRepository.SetLastSuccessfulValidationTimestampAsync(o => o.Id == userEntity.Id, cancellationTokenSource.Token);
 
-                return AuthenticationStatus.Valid;
+                return new AuthenticationResult
+                {
+                    Status = AuthenticationStatus.Valid
+                };
             }
 
             this.SetInvalidLogin(authenticationRequest.IpAddress);
@@ -185,7 +215,10 @@ namespace Nager.Authentication.Services
 
             await this._userRepository.SetLastValidationTimestampAsync(o => o.Id == userEntity.Id, cancellationTokenSource.Token);
 
-            return AuthenticationStatus.Invalid;
+            return new AuthenticationResult
+            {
+                Status = AuthenticationStatus.Invalid
+            };
         }
 
         /// <inheritdoc />
@@ -210,21 +243,41 @@ namespace Nager.Authentication.Services
         }
 
         /// <inheritdoc />
-        public async Task<bool> ValidateTokenAsync(
-            string emailAddress,
+        public async Task<ValidateTokenResult> ValidateTokenAsync(
+            string mfaIdentifier,
             string token,
             CancellationToken cancellationToken = default)
         {
+            var cacheKey = this.GetCacheKey(mfaIdentifier);
+            if (!this._memoryCache.TryGetValue<string>(cacheKey, out var emailAddress))
+            {
+                return new ValidateTokenResult
+                {
+                    Success = false
+                };
+            }
+
+            this._memoryCache.Remove(cacheKey);
+
             var timeTolerance = TimeSpan.FromSeconds(20);
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
             if (userEntity == null)
             {
-                return false;
+                return new ValidateTokenResult
+                {
+                    Success = false
+                };
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
-            return twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token, timeTolerance);
+            var isTokenValid = twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.mfaSecret, token, timeTolerance);
+
+            return new ValidateTokenResult
+            {
+                Success = isTokenValid,
+                EmailAddress = emailAddress
+            };
         }
     }
 }

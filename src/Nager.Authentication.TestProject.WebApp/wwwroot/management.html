@@ -94,7 +94,7 @@
                 }
             },
             computed: {
-                token() {
+                authenticationToken() {
                     return localStorage.getItem(tokenKey)
                 }
             },
@@ -110,7 +110,7 @@
                     const response = await fetch(`/api/v1/UserManagement/${userId}`, {
                         method: 'DELETE',
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         }
                     })
@@ -127,7 +127,7 @@
                     const response = await fetch('/api/v1/UserManagement/', {
                         method: 'POST',
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
@@ -150,7 +150,7 @@
 
                     const response = await fetch('/api/v1/UserManagement', {
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         }
                     })

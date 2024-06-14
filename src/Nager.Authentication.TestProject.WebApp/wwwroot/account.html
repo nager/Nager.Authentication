@@ -15,30 +15,36 @@
 
     <div v-cloak id="app" style="padding-left:10px; padding-right:10px;">
 
-        <div v-if="token">
-            <form action="javascript:void(0);">
+        <div v-if="authenticationToken">
+            <form @submit.prevent="changePassword()">
                 <fieldset>
                     <legend>Change password</legend>
 
                     <label>Password</label>
                     <input type="password" v-model="password" /><br />
-                    <button @click="changePassword()">Change</button>
+                    <button type="submit">Change</button>
                 </fieldset>
             </form>
 
             <form action="javascript:void(0);">
                 <fieldset>
-                    <legend>Activate MFA</legend>
+                    <legend>MFA</legend>
+
+                    <label>Active</label>
+                    {{ mfaInformation.isActive }}<br />
+
+                    <label>Activation Code</label>
+                    <img v-if="!mfaInformation.isActive" :src="mfaInformation.activationQrCode" /><br />
+                    <br />
 
                     <label>Token</label>
-                    <input type="text" v-model="activationToken" /><br />
-                    <button @click="activateMfa()">Activate</button>
+                    <input type="text" v-model="totpCode" /><br />
+                    <button v-if="!mfaInformation.isActive" @click="activateMfa()">Activate</button>
+                    <button v-if="mfaInformation.isActive" @click="deactivateMfa()">Deactivate</button>
                 </fieldset>
             </form>
 
         </div>
-
-        <img :src="test.image" />
 
         <hr />
 
@@ -74,8 +80,8 @@
         createApp({
             data() {
                 return {
-                    test: '',
-                    activationToken: '',
+                    mfaInformation: '',
+                    totpCode: '',
                     password: '',
                     responseData: undefined,
                     responseError: undefined,
@@ -83,17 +89,11 @@
                 }
             },
             async created() {
-                const response = await fetch('/api/v1/UserAccount/MfaActivationInfo', {
-                    headers: {
-                        "Authorization": `Bearer ${this.token}`,
-                        "Content-Type": 'application/json'
-                    }
-                })
-                this.test = await response.json();
+                this.getMfaInformation()
             },
             computed: {
-                token() {
-                    return localStorage.getItem(tokenKey);
+                authenticationToken() {
+                    return localStorage.getItem(tokenKey)
                 }
             },
             methods: {
@@ -102,11 +102,20 @@
                     this.responseData = undefined
                     this.responseError = undefined
                 },
+                async getMfaInformation() {
+                    const response = await fetch('/api/v1/UserAccount/Mfa', {
+                        headers: {
+                            "Authorization": `Bearer ${this.authenticationToken}`,
+                            "Content-Type": 'application/json'
+                        }
+                    })
+                    this.mfaInformation = await response.json()
+                },
                 async changePassword() {
                     const response = await fetch('/api/v1/UserAccount/ChangePassword', {
                         method: "POST",
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
@@ -117,18 +126,40 @@
                     this.responseStatusCode = response.status
                 },
                 async activateMfa() {
-                    const response = await fetch('/api/v1/UserAccount/MfaActivate', {
+                    const response = await fetch('/api/v1/UserAccount/Mfa/Activate', {
                         method: "POST",
                         headers: {
-                            "Authorization": `Bearer ${this.token}`,
+                            "Authorization": `Bearer ${this.authenticationToken}`,
                             "Content-Type": 'application/json'
                         },
                         body: JSON.stringify({
-                            token: this.activationToken
+                            token: this.totpCode
                         })
                     })
 
                     this.responseStatusCode = response.status
+
+                    if (response.status === 204) {
+                        await this.getMfaInformation()
+                    }
+                },
+                async deactivateMfa() {
+                    const response = await fetch('/api/v1/UserAccount/Mfa/Deactivate', {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.authenticationToken}`,
+                            "Content-Type": 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: this.totpCode
+                        })
+                    })
+
+                    this.responseStatusCode = response.status
+
+                    if (response.status === 204) {
+                        await this.getMfaInformation()
+                    }
                 }
             }
         }).mount('#app')

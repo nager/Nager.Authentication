@@ -109,43 +109,6 @@ namespace Nager.Authentication.Abstraction.Controllers
                 signingCredentials: credentials);
         }
 
-        private JwtSecurityToken CreateTotpCheckToken(
-            AuthenticationRequestDto request)
-        {
-            var issuer = this._configuration["Authentication:Tokens:Issuer"];
-            var audience = this._configuration["Authentication:Tokens:Audience"];
-            var signingKey = this._configuration["Authentication:Tokens:SigningKey"];
-
-            var expiresAt = DateTime.UtcNow.AddMinutes(5);
-
-            if (string.IsNullOrEmpty(issuer))
-            {
-                throw new MissingConfigurationException($"{nameof(issuer)} is missing");
-            }
-
-            if (string.IsNullOrEmpty(signingKey))
-            {
-                throw new MissingConfigurationException($"{nameof(signingKey)} is missing");
-            }
-
-            var temporaryIdentity = $"totp:{request.EmailAddress}";
-
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.UniqueName, temporaryIdentity),
-                new(JwtRegisteredClaimNames.Email, temporaryIdentity)
-            };
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            return new JwtSecurityToken(issuer,
-                audience,
-                claims,
-                expires: expiresAt,
-                signingCredentials: credentials);
-        }
-
         /// <summary>
         /// Authenticate via Email and Password
         /// </summary>
@@ -153,6 +116,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <response code="200">Authentication successful</response>
+        /// <response code="401">Mfa required</response>
         /// <response code="406">Invalid credential</response>
         /// <response code="429">Credential check temporarily locked</response>
         /// <response code="500">Unexpected error</response>
@@ -160,6 +124,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         [HttpPost]
         [Route("")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status406NotAcceptable)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -177,12 +142,12 @@ namespace Nager.Authentication.Abstraction.Controllers
                 IpAddress = ipAddress
             };
 
-            var authenticationStatus = await this._userAuthenticationService.ValidateCredentialsAsync(authenticationRequest, cancellationToken);
-            this._logger.LogInformation($"{nameof(AuthenticateAsync)} - EmailAddress:{request.EmailAddress}, AuthenticationStatus:{authenticationStatus}");
+            var authenticationResult = await this._userAuthenticationService.ValidateCredentialsAsync(authenticationRequest, cancellationToken);
+            this._logger.LogInformation($"{nameof(AuthenticateAsync)} - EmailAddress:{request.EmailAddress}, AuthenticationStatus:{authenticationResult}");
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            switch (authenticationStatus)
+            switch (authenticationResult.Status)
             {
                 case AuthenticationStatus.Invalid:
                     return StatusCode(StatusCodes.Status406NotAcceptable);
@@ -204,13 +169,10 @@ namespace Nager.Authentication.Abstraction.Controllers
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
                 case AuthenticationStatus.MfaCodeRequired:
-                    var jwtTotpCheckToken = CreateTotpCheckToken(request);
-                    var totpToken = tokenHandler.WriteToken(jwtTotpCheckToken);
-
-                    return StatusCode(StatusCodes.Status200OK, new AuthenticationResponseDto
+                    return StatusCode(StatusCodes.Status401Unauthorized, new MfaRequiredResponseDto
                     {
-                        Token = totpToken,
-                        Expiration = jwtTotpCheckToken.ValidTo
+                        MfaType = "TOTP",
+                        MfaIdentifier = authenticationResult.MfaIdentifier
                     });
                 case AuthenticationStatus.TemporaryBlocked:
                     return StatusCode(StatusCodes.Status429TooManyRequests);
@@ -225,32 +187,26 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        ///// <response code="200">Authentication successful</response>
-        ///// <response code="406">Invalid credential</response>
-        ///// <response code="429">Credential check temporarily locked</response>
-        ///// <response code="500">Unexpected error</response>
+        /// <response code="200">Authentication successful</response>
+        /// <response code="406">Invalid credential</response>
+        /// <response code="500">Unexpected error</response>
+        [AllowAnonymous]
         [HttpPost]
         [Route("Token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status406NotAcceptable)]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<AuthenticationResponseDto>> SecondStepTotpAsync(
-            [Required][FromBody] TimeBasedOneTimeTokenRequestDto request,
+            [Required][FromBody] AuthenticationMfaTokenRequestDto request,
             CancellationToken cancellationToken = default)
         {
-
-            var emailAddress = HttpContext.User.Identity?.Name;
-
-            var validEmailAddress = emailAddress.Substring(5);
-
-            var isTokenValid = await this._userAuthenticationService.ValidateTokenAsync(validEmailAddress, request.Token, cancellationToken);
-            if (!isTokenValid)
+            var validateTokenResult = await this._userAuthenticationService.ValidateTokenAsync(request.MfaIdentifier, request.Token, cancellationToken);
+            if (!validateTokenResult.Success)
             {
                 return StatusCode(StatusCodes.Status400BadRequest);
             }
 
-            var jwtSecurityToken = await this.CreateTokenAsync(validEmailAddress);
+            var jwtSecurityToken = await this.CreateTokenAsync(validateTokenResult.EmailAddress);
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.WriteToken(jwtSecurityToken);
