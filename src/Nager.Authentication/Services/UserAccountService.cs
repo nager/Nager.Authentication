@@ -160,9 +160,14 @@ namespace Nager.Authentication.Services
                 };
             }
 
-            if (!await this.CreateMfaSecretAsync(emailAddress, cancellationToken))
+            if (userEntity.MfaSecret == null)
             {
-                return null;
+                if (!await this.CreateMfaSecretAsync(emailAddress, cancellationToken))
+                {
+                    return null;
+                }
+
+                userEntity = await this._userRepository.GetAsync(o => o.EmailAddress.Equals(emailAddress), cancellationToken);
             }
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
