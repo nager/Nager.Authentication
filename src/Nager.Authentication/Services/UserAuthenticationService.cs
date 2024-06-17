@@ -251,19 +251,31 @@ namespace Nager.Authentication.Services
             var cacheKey = this.GetCacheKey(mfaIdentifier);
             if (!this._memoryCache.TryGetValue<string>(cacheKey, out var emailAddress))
             {
+                this._logger.LogError($"{nameof(ValidateTokenAsync)} - CacheKey {cacheKey} not found");
+
                 return new ValidateTokenResult
                 {
                     Success = false
                 };
             }
 
-            this._memoryCache.Remove(cacheKey);
+            if (string.IsNullOrEmpty(emailAddress))
+            {
+                this._logger.LogError($"{nameof(ValidateTokenAsync)} - EmailAddress is empty");
+
+                return new ValidateTokenResult
+                {
+                    Success = false
+                };
+            }
 
             var timeTolerance = TimeSpan.FromSeconds(20);
 
             var userEntity = await this._userRepository.GetAsync(o => o.EmailAddress == emailAddress);
             if (userEntity == null)
             {
+                this._logger.LogError($"{nameof(ValidateTokenAsync)} - No User available");
+
                 return new ValidateTokenResult
                 {
                     Success = false
@@ -272,6 +284,11 @@ namespace Nager.Authentication.Services
 
             var twoFactorAuthenticator = new TwoFactorAuthenticator();
             var isTokenValid = twoFactorAuthenticator.ValidateTwoFactorPIN(userEntity.MfaSecret, token, timeTolerance);
+
+            if (isTokenValid)
+            {
+                this._memoryCache.Remove(cacheKey);
+            }
 
             return new ValidateTokenResult
             {

@@ -189,7 +189,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <response code="200">Authentication successful</response>
-        /// <response code="406">Invalid credential</response>
+        /// <response code="400">Invalid token</response>
         /// <response code="500">Unexpected error</response>
         [AllowAnonymous]
         [HttpPost]
