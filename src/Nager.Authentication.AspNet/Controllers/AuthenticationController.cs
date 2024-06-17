@@ -182,8 +182,9 @@ namespace Nager.Authentication.Abstraction.Controllers
         }
 
         /// <summary>
-        /// Second Step Time-based one-time password
+        /// Authenticate Mfa Token
         /// </summary>
+        /// <remarks>Second Step Time-based one-time password</remarks>
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -196,7 +197,7 @@ namespace Nager.Authentication.Abstraction.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<AuthenticationResponseDto>> SecondStepTotpAsync(
+        public async Task<ActionResult<AuthenticationResponseDto>> AuthenticateMfaTokenAsync(
             [Required][FromBody] AuthenticationMfaTokenRequestDto request,
             CancellationToken cancellationToken = default)
         {
