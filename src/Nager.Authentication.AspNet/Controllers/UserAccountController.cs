@@ -106,11 +106,13 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <response code="204">Password changed</response>
+        /// <response code="204">Mfa activated</response>
+        /// <response code="400">Mfa workflow error</response>
         /// <response code="500">Unexpected error</response>
         [HttpPost]
         [Route("Mfa/Activate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(MfaErrorResponseDto))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> ActivateMfaAsync(
             [Required][FromBody] TimeBasedOneTimeTokenRequestDto request,
@@ -135,7 +137,7 @@ namespace Nager.Authentication.Abstraction.Controllers
 
                 case MfaActivationResult.AlreadyActive:
                 case MfaActivationResult.InvalidCode:
-                    return StatusCode(StatusCodes.Status400BadRequest, new { error = mfaResult.ToString() });
+                    return StatusCode(StatusCodes.Status400BadRequest, new MfaErrorResponseDto { Error = mfaResult.ToString() });
 
                 default:
                     return StatusCode(StatusCodes.Status500InternalServerError);
@@ -148,11 +150,13 @@ namespace Nager.Authentication.Abstraction.Controllers
         /// <param name="request"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <response code="204">Password changed</response>
+        /// <response code="204">Mfa deactivated</response>
+        /// <response code="400">Mfa workflow error</response>
         /// <response code="500">Unexpected error</response>
         [HttpPost]
         [Route("Mfa/Deactivate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(MfaErrorResponseDto))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeactivateMfaAsync(
             [Required][FromBody] TimeBasedOneTimeTokenRequestDto request,
@@ -177,7 +181,7 @@ namespace Nager.Authentication.Abstraction.Controllers
 
                 case MfaDeactivationResult.NotActive:
                 case MfaDeactivationResult.InvalidCode:
-                    return StatusCode(StatusCodes.Status400BadRequest, new { error = mfaResult.ToString() });
+                    return StatusCode(StatusCodes.Status400BadRequest, new MfaErrorResponseDto { Error = mfaResult.ToString() });
 
                 default:
                     return StatusCode(StatusCodes.Status500InternalServerError);
