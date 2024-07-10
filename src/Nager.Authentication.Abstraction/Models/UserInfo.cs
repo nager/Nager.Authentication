@@ -17,5 +17,7 @@ namespace Nager.Authentication.Abstraction.Models
         public DateTime? LastFailedValidationTimestamp { get; set; }
 
         public DateTime? LastSuccessfulValidationTimestamp { get; set; }
+
+        public bool MfaActive { get; set; }
     }
 }
