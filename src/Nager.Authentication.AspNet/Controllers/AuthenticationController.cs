@@ -169,6 +169,11 @@ namespace Nager.Authentication.Abstraction.Controllers
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
                 case AuthenticationStatus.MfaCodeRequired:
+                    if (string.IsNullOrEmpty(authenticationResult.MfaIdentifier))
+                    {
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+
                     return StatusCode(StatusCodes.Status401Unauthorized, new MfaRequiredResponseDto
                     {
                         MfaType = "TOTP",

@@ -18,7 +18,7 @@
   <RepositoryUrl>https://github.com/nager/Nager.Authentication</RepositoryUrl>
   
   <Nullable>enable</Nullable>
-  <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+  <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
   
   <Version>2.0.4</Version>
 </PropertyGroup>
