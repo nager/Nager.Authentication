@@ -17,5 +17,7 @@ namespace Nager.Authentication.AspNet.Dtos
         public DateTime? LastFailedValidationTimestamp { get; set; }
 
         public DateTime? LastSuccessfulValidationTimestamp { get; set; }
+
+        public bool MfaActive { get; set; }
     }
 }

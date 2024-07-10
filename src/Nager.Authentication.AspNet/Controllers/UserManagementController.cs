@@ -65,7 +65,8 @@ namespace Nager.Authentication.Abstraction.Controllers
                 Lastname = userInfo.Lastname,
                 Roles = userInfo.Roles,
                 LastFailedValidationTimestamp = userInfo.LastFailedValidationTimestamp,
-                LastSuccessfulValidationTimestamp = userInfo.LastSuccessfulValidationTimestamp
+                LastSuccessfulValidationTimestamp = userInfo.LastSuccessfulValidationTimestamp,
+                MfaActive = userInfo.MfaActive
             };
 
             return StatusCode(StatusCodes.Status200OK, item);
@@ -94,7 +95,8 @@ namespace Nager.Authentication.Abstraction.Controllers
                 Lastname = userInfo.Lastname,
                 Roles = userInfo.Roles,
                 LastFailedValidationTimestamp = userInfo.LastFailedValidationTimestamp,
-                LastSuccessfulValidationTimestamp  = userInfo.LastSuccessfulValidationTimestamp
+                LastSuccessfulValidationTimestamp  = userInfo.LastSuccessfulValidationTimestamp,
+                MfaActive = userInfo.MfaActive
             });
 
             return StatusCode(StatusCodes.Status200OK, items);
